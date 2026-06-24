@@ -22,6 +22,10 @@
       <default>'dash'</default>
     </key>
 
+    <key name="category-grouping" type="b">
+      <default>true</default>
+    </key>
+
     <key name="icon-size" type="i">
       <default>64</default>
     </key>

@@ -15,7 +15,7 @@ export default class VerticalAppGridExtension extends Extension {
     const overviewControlsProto = OverviewControls.ControlsManager.prototype;
 
     this._settings = this.getSettings();
-    this._vertAppDisplay = new VerticalAppDisplay(this._settings);
+    this._vertAppDisplay = new VerticalAppDisplay(this._settings, this.gettext.bind(this));
     this._injectionManager = new InjectionManager();
 
     // Add the vertical app display to the overview
