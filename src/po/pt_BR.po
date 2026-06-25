@@ -56,6 +56,13 @@ msgstr "Tamanho dos ícones"
 msgid "Icon Spacing"
 msgstr "Espaçamento dos ícones"
 
+
+msgid "Show favorites in app grid"
+msgstr "Show favorites in app grid"
+
+msgid "When enabled, applications pinned to favorites will appear in the apps grid"
+msgstr "When enabled, applications pinned to favorites will appear in the apps grid"
+
 msgid "Group by Category"
 msgstr "Group by Category"
 

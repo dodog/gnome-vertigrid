@@ -52,6 +52,13 @@
         </child>
 
         <child>
+          <object class="AdwSwitchRow" id="show-favorites-in-app-grid">
+            <property name="title" translatable="yes">Show favorites in app grid</property>
+            <property name="subtitle" translatable="yes">When enabled, applications pinned to favorites will appear in the apps grid</property>
+          </object>
+        </child>
+
+        <child>
           <object class="AdwSwitchRow" id="category-grouping">
             <property name="title" translatable="yes">Group by Category</property>
           </object>

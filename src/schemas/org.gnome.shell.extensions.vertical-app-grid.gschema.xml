@@ -26,6 +26,10 @@
       <default>true</default>
     </key>
 
+    <key name="show-favorites-in-app-grid" type="b">
+      <default>false</default>
+    </key>
+
     <key name="icon-size" type="i">
       <default>64</default>
     </key>

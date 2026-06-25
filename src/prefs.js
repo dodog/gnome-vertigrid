@@ -17,6 +17,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
       ['animate-scroll', 'active'],
       ['columns', 'value'],
       ['favorites-section', 'active'],
+      ['show-favorites-in-app-grid', 'active'],
       ['category-grouping', 'active'],
       ['icon-size', 'value'],
       ['icon-spacing', 'value']

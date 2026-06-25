@@ -41,6 +41,13 @@ msgstr "与 Dash 一致"
 msgid "Show Favorites Section"
 msgstr "显示收藏夹区域"
 
+msgid "Show favorites in app grid"
+msgstr "复制到收藏夹"
+
+msgid "When enabled, applications pinned to favorites will appear in the apps grid"
+msgstr "启用后，固定到收藏夹的应用程序将出现在应用程序网格中"
+
+
 msgid "Group by Category"
 msgstr "按类型分组"
 

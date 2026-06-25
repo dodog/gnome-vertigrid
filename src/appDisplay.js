@@ -97,6 +97,7 @@ class VerticalAppDisplay extends St.Widget {
         case 'favorites-section':
         case 'favorites-sorting':
         case 'category-grouping':
+        case 'show-favorites-in-app-grid':
           return this._redisplay();
 
         case 'icon-spacing':
@@ -225,21 +226,71 @@ class VerticalAppDisplay extends St.Widget {
         scrollBox.set_child_at_index(this._favoritesView, 1);
       }
 
-      const apps = this._loadApps();
+      const syncFavorites = this._settings.get_boolean('show-favorites-in-app-grid');
+      const installedApps = this._appSystem.get_installed();
+      const favSorting = this._settings.get_string('favorites-sorting');
+      const appSorting = this._settings.get_string('app-sorting');
+      const favIds = this._appFavorites._getIds();
 
-      for (const appId of apps) {
-        const app = this._appSystem.lookup_app(appId);
+      const favAppInfos = [];
+      const mainAppInfos = [];
+
+      installedApps.forEach(appInfo => {
+        try {
+          if (!this._parentalControls.shouldShowApp(appInfo))
+            return;
+
+          const appId = appInfo.get_id();
+          const isFav = this._appFavorites.isFavorite(appId);
+
+          if (favSection && isFav) {
+            favAppInfos.push(appInfo);
+            if (!syncFavorites) return;
+          }
+
+          mainAppInfos.push(appInfo);
+        } catch { }
+      });
+
+      // Sort favorites
+      favAppInfos.sort((a, b) => {
+        switch (favSorting) {
+          case 'dash':
+            return favIds.indexOf(a.get_id()) - favIds.indexOf(b.get_id());
+          case 'usage':
+            return this._appUsage.compare(a.get_id(), b.get_id()) ?? 0;
+          case 'alphabetical': default:
+            return a.get_name().toLowerCase().localeCompare(b.get_name().toLowerCase());
+        }
+      });
+
+      // Sort main apps
+      mainAppInfos.sort((a, b) => {
+        switch (appSorting) {
+          case 'usage':
+            return this._appUsage.compare(a.get_id(), b.get_id()) ?? 0;
+          case 'alphabetical': default:
+            return a.get_name().toLowerCase().localeCompare(b.get_name().toLowerCase());
+        }
+      });
+
+      // Add favorites
+      for (const appInfo of favAppInfos) {
+        const app = this._appSystem.lookup_app(appInfo.get_id());
         if (!app) continue;
-
         const appIcon = new AppDisplay.AppIcon(app, { isDraggable: false });
         appIcon.icon.setIconSize(iconSize);
+        this._favoritesView.add_child(appIcon);
+        this._appIcons.push(appIcon);
+      }
 
-        if (favSection && this._appFavorites.isFavorite(appId)) {
-          this._favoritesView.add_child(appIcon);
-        } else {
-          this._mainView.add_child(appIcon);
-        }
-
+      // Add main apps
+      for (const appInfo of mainAppInfos) {
+        const app = this._appSystem.lookup_app(appInfo.get_id());
+        if (!app) continue;
+        const appIcon = new AppDisplay.AppIcon(app, { isDraggable: false });
+        appIcon.icon.setIconSize(iconSize);
+        this._mainView.add_child(appIcon);
         this._appIcons.push(appIcon);
       }
 
@@ -257,6 +308,7 @@ class VerticalAppDisplay extends St.Widget {
   _loadAppsByCategory() {
     const installedApps = this._appSystem.get_installed();
     const favSection = this._settings.get_boolean('favorites-section');
+    const syncFavorites = this._settings.get_boolean('show-favorites-in-app-grid');
 
     const appsByCategory = {};
     for (const cat of CATEGORY_ORDER) {
@@ -274,9 +326,11 @@ class VerticalAppDisplay extends St.Widget {
 
         const isFav = this._appFavorites.isFavorite(appId);
 
+        // Add to favorites section if enabled
         if (favSection && isFav) {
           appsByCategory['_favorites'].push(appInfo);
-          return;
+          // If show-favorites-in-app-grid is enabled, also add to category (don't return)
+          if (!syncFavorites) return;
         }
 
         const category = getAppCategory(appInfo);
