@@ -72,41 +72,44 @@ msgstr "图标大小"
 msgid "Icon Spacing"
 msgstr "图标间距"
 
-msgid "System"
-msgstr "系统"
+msgid "Development"
+msgstr "开发工具"
+
+msgid "Office"
+msgstr "办公软件"
+
+msgid "Network"
+msgstr "网络工具"
+
+msgid "AudioVideo"
+msgstr "多媒体"
+
+msgid "Audio"
+msgstr "音频"
+
+msgid "Video"
+msgstr "视频"
+
+msgid "Graphics"
+msgstr "图像图形"
+
+msgid "Education"
+msgstr "教育软件"
+
+msgid "Game"
+msgstr "游戏"
+
+msgid "Utility"
+msgstr "小工具"
 
 msgid "Accessories"
 msgstr "附件"
 
-msgid "Development"
-msgstr "开发"
-
-msgid "Education"
-msgstr "教育"
-
-msgid "Games"
-msgstr "游戏"
-
-msgid "Graphics"
-msgstr "图形"
-
-msgid "Internet"
-msgstr "互联网"
-
-msgid "Multimedia"
-msgstr "多媒体"
-
-msgid "Office"
-msgstr "办公"
-
-msgid "Science"
-msgstr "科学"
+msgid "System"
+msgstr "系统工具"
 
 msgid "Settings"
-msgstr "设置"
-
-msgid "Utility"
-msgstr "实用工具"
+msgstr "系统设置"
 
 msgid "Other"
 msgstr "其他"

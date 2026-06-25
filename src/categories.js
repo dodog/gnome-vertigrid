@@ -14,29 +14,31 @@ Note: Changes to categories will not take effect until you restart GNOME desktop
 */ 
 
 export const CATEGORIES = [
-  // 开发
+  // 开发工具
   {name: 'Development', enabled: true, merge: false},
-  // 办公
+  // 办公软件
   {name: 'Office', enabled: true, merge: false},
-  // 互联网
-  {name: 'Internet', enabled: true, merge: false},
+  // 网络工具
+  {name: 'Network', enabled: true, merge: false},
   // 多媒体
-  {name: 'Multimedia', enabled: true, merge: false},
-  // 图形
-  {name: 'Graphics', enabled: true, merge: 'Multimedia'},
-  // 教育
+  {name: 'AudioVideo', enabled: true, merge: false},
+  // 音频
+  {name: 'Audio', enabled: true, merge: 'AudioVideo'},
+  // 视频
+  {name: 'Video', enabled: true, merge: 'AudioVideo'},
+  // 图像图形
+  {name: 'Graphics', enabled: true, merge: 'AudioVideo'},
+  // 教育软件
   {name: 'Education', enabled: true, merge: false},
-  // 科学
-  {name: 'Science', enabled: true, merge: false},
   // 游戏
-  {name: 'Games', enabled: true, merge: false},
-  // 实用工具
+  {name: 'Game', enabled: true, merge: false},
+  // 小工具
   {name: 'Utility', enabled: true, merge: false},
   // 附件
-  {name: 'Accessories', enabled: true, merge: false},
-  // 系统
+  {name: 'Accessories', enabled: true, merge: 'Utility'},
+  // 系统工具
   {name: 'System', enabled: true, merge: false},
-  // 设置
+  // 系统设置
   {name: 'Settings', enabled: true, merge: 'System'},
 ];
 

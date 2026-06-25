@@ -72,41 +72,44 @@ msgstr "Edit Categories Profile"
 msgid "Open the categories configuration file"
 msgstr "Open the categories configuration file"
 
-msgid "System"
-msgstr "System"
-
-msgid "Accessories"
-msgstr "Accessories"
-
 msgid "Development"
 msgstr "Development"
-
-msgid "Education"
-msgstr "Education"
-
-msgid "Games"
-msgstr "Games"
-
-msgid "Graphics"
-msgstr "Graphics"
-
-msgid "Internet"
-msgstr "Internet"
-
-msgid "Multimedia"
-msgstr "Multimedia"
 
 msgid "Office"
 msgstr "Office"
 
-msgid "Science"
-msgstr "Science"
+msgid "Network"
+msgstr "Network"
 
-msgid "Settings"
-msgstr "Settings"
+msgid "AudioVideo"
+msgstr "AudioVideo"
+
+msgid "Audio"
+msgstr "Audio"
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Graphics"
+msgstr "Graphics"
+
+msgid "Education"
+msgstr "Education"
+
+msgid "Game"
+msgstr "Game"
 
 msgid "Utility"
 msgstr "Utility"
+
+msgid "Accessories"
+msgstr "Accessories"
+
+msgid "System"
+msgstr "System"
+
+msgid "Settings"
+msgstr "Settings"
 
 msgid "Other"
 msgstr "Other"
