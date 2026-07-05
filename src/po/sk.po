@@ -1,11 +1,11 @@
-# Gnome Vertical App Grid Extension Slovak Translation.
+# EZ - Launcher Extension Slovak Translation.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Gnome Vertical App Grid package.
+# This file is distributed under the same license as the EZ - Launcher package.
 # Jozef Gaal <preklady@mayday.sk>, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gnome-vertical-app-grid\n"
+"Project-Id-Version: ez-launche\n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jozef Gaal <preklady@mayday.sk>\n"
@@ -66,3 +66,60 @@ msgstr "Veľkosť ikony"
 
 msgid "Icon Spacing"
 msgstr "Rozostup ikon"
+
+msgid "Show favorites in app grid"
+msgstr "Zobraziť obľúbené položky v mriežke aplikácií"
+
+msgid "When enabled, applications pinned to favorites will appear in the apps grid"
+msgstr "Ak je táto funkcia zapnutá, aplikácie pripnuté do obľúbených sa zobrazia v mriežke aplikácií"
+
+msgid "Group by Category"
+msgstr "Zoskupiť podľa kategórie"
+
+msgid "Edit Categories Profile"
+msgstr "Upraviť profil kategórií"
+
+msgid "Open the categories configuration file"
+msgstr "Otvoriť konfiguračný súbor kategórií"
+
+msgid "Development"
+msgstr "Vývoj"
+
+msgid "Office"
+msgstr "Kancelária"
+
+msgid "Network"
+msgstr "Sieť"
+
+msgid "AudioVideo"
+msgstr "AudioVideo"
+
+msgid "Audio"
+msgstr "Audio"
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Graphics"
+msgstr "Grafika"
+
+msgid "Education"
+msgstr "Vzdelávanie"
+
+msgid "Game"
+msgstr "Hry"
+
+msgid "Utility"
+msgstr "Nástroje"
+
+msgid "Accessories"
+msgstr "Príslušenstvo"
+
+msgid "System"
+msgstr "Systém"
+
+msgid "Settings"
+msgstr "Nastavenia"
+
+msgid "Other"
+msgstr "Ostatné"
