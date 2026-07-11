@@ -96,7 +96,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                 x_expand: false,
                 y_expand: true,
                 style_class: 'category-nav-box',
-                style: 'margin-right: 12px; padding: 12px 0 12px 12px; width: 160px;'
+                style: 'margin-right: 8px; padding: 8px 0 8px 8px; width: 140px;'
             });
 
             this._mainBox = new St.BoxLayout({
@@ -152,6 +152,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                     case 'favorites-sorting':
                     case 'category-grouping':
                     case 'show-favorites-in-app-grid':
+                    case 'category-font-size':
                         return this._redisplay();
 
                     case 'icon-spacing':
@@ -403,11 +404,15 @@ export const VerticalAppDisplay = GObject.registerClass(
                 });
             }
 
+            const fontSize = this._settings.get_int('category-font-size');
+
             visibleCategories.forEach((item, index) => {
                 const button = new St.Button({
                     x_expand: true,
                     reactive: true,
                     can_focus: true,
+                    y_expand: false,
+                    y_align: Clutter.ActorAlign.CENTER,
                     style: this._getCategoryButtonStyle(false)
                 });
                 button._categoryId = item.id;
@@ -415,19 +420,22 @@ export const VerticalAppDisplay = GObject.registerClass(
                 const categoryRow = new St.BoxLayout({
                     vertical: false,
                     x_expand: true,
-                    y_expand: true,
+                    y_expand: false,
+                    y_align: Clutter.ActorAlign.CENTER,
                     style: 'align-items: center;'
                 });
 
                 const icon = new St.Icon({
                     icon_name: CATEGORY_ICONS[item.id] || 'applications-other-symbolic',
                     icon_size: 16,
+                    y_align: Clutter.ActorAlign.CENTER,
                     style: 'margin-right: 10px; opacity: 0.75;'
                 });
                 const label = new St.Label({
                     text: item.label,
                     style_class: 'search-statustext',
-                    style: 'font-weight: 500; font-size: 11px;'
+                    y_align: Clutter.ActorAlign.CENTER,
+                    style: `font-weight: 500; font-size: ${fontSize}px; margin: 0;`
                 });
 
                 categoryRow.add_child(icon);
@@ -458,7 +466,7 @@ export const VerticalAppDisplay = GObject.registerClass(
         }
 
         _getCategoryButtonStyle(isActive) {
-            const base = 'margin: 4px 0; padding: 6px 8px; border-radius: 12px; text-align: left; width: 100%; border: none;';
+            const base = 'margin: 2px 0; padding: 4px 8px; border-radius: 12px; text-align: left; width: 100%; border: none;';
             const active = 'background-color: rgba(255,255,255,0.16); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);';
             const normal = 'background-color: transparent; color: rgba(255,255,255,0.82);';
             return base + (isActive ? active : normal);
