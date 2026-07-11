@@ -32,37 +32,68 @@ export default class VerticalAppGridExtension extends Extension {
                 const overview = Main.overview && Main.overview._overview;
                 if (!overview) return;
 
-                const controls = overview._controls || overview._controlsManager || overview;
+                const visited = new Set();
 
-                function recurseSet(actor) {
+                function recurse(actor) {
+                    if (!actor || visited.has(actor)) return;
+                    visited.add(actor);
+
                     try {
-                        // Check common name/style hints
-                        const name = (actor.get_name && actor.get_name()) || '';
-                        const sc = (actor.style_class || (actor.get_style_class_name && actor.get_style_class_name && actor.get_style_class_name()) || '').toString();
-                        if ((name && name.toLowerCase().includes('workspace')) || (sc && sc.toLowerCase().includes('workspace')) || (name && name.toLowerCase().includes('switcher'))) {
-                            actor.visible = show;
+                        const name = actor.get_name ? actor.get_name() : '';
+                        const styleClass = actor.get_style_class_name ? actor.get_style_class_name().toString() : '';
+                        const style = actor.style_class || '';
+                        const protoName = actor.constructor ? actor.constructor.name : '';
+                        const summary = `${name} ${styleClass} ${style} ${protoName}`.toLowerCase();
+
+                        if (summary.includes('workspace') ||
+                            summary.includes('viewselector') ||
+                            summary.includes('workspace-switcher') ||
+                            summary.includes('workspaceindicator') ||
+                            summary.includes('workspace-indicator') ||
+                            summary.includes('switcher')) {
+                            try {
+                                if ('visible' in actor) {
+                                    actor.visible = show;
+                                }
+                            } catch (e) {}
                         }
                     } catch (e) {}
 
                     try {
                         const children = actor.get_children ? actor.get_children() : [];
-                        for (let c of children) recurseSet(c);
+                        for (let child of children) recurse(child);
                     } catch (e) {}
                 }
 
-                recurseSet(controls);
-                // Also try top-level viewSelector if present
-                if (Main.overview.viewSelector) {
-                    try {
-                        Main.overview.viewSelector.visible = this._settings.get_boolean('show-workspaces');
-                    } catch (e) {}
+                recurse(overview);
+                recurse(Main.overview);
+                if (Main.overview && Main.overview._controls) {
+                    recurse(Main.overview._controls);
                 }
+
+                const directActors = [
+                    overview._workspaceSwitcher,
+                    overview._workspaceGrid,
+                    Main.overview && Main.overview.viewSelector,
+                    Main.overview && Main.overview._workspaceSwitcher,
+                    Main.overview && Main.overview._workspaceIndicator,
+                    Main.overview && Main.overview._controls
+                ];
+
+                directActors.forEach(actor => {
+                    try {
+                        if (actor && 'visible' in actor) {
+                            actor.visible = show;
+                        }
+                    } catch (e) {}
+                });
             } catch (e) {
-                log(`Failed to update workspace visibility: ${e}`);
+                log(`ez-launcher: Failed to update workspace visibility: ${e}`);
             }
         };
 
         this._settingsSignal = this._settings.connect('changed::show-workspaces', () => this._updateWorkspacesVisibility());
+        this._updateWorkspacesVisibility();
 
         // Add the vertical app display to the overview
         this._overviewControls = Main.overview._overview._controls;
