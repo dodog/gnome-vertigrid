@@ -96,7 +96,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                 x_expand: false,
                 y_expand: true,
                 style_class: 'category-nav-box',
-                style: 'margin-right: 18px; padding: 18px 0 18px 18px; width: 240px;'
+                style: 'margin-right: 12px; padding: 12px 0 12px 12px; width: 160px;'
             });
 
             this._mainBox = new St.BoxLayout({
@@ -427,7 +427,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                 const label = new St.Label({
                     text: item.label,
                     style_class: 'search-statustext',
-                    style: 'font-weight: 500;'
+                    style: 'font-weight: 500; font-size: 11px;'
                 });
 
                 categoryRow.add_child(icon);
@@ -458,7 +458,7 @@ export const VerticalAppDisplay = GObject.registerClass(
         }
 
         _getCategoryButtonStyle(isActive) {
-            const base = 'margin: 6px 0; padding: 10px 12px; border-radius: 16px; text-align: left; width: 100%; border: none;';
+            const base = 'margin: 4px 0; padding: 6px 8px; border-radius: 12px; text-align: left; width: 100%; border: none;';
             const active = 'background-color: rgba(255,255,255,0.16); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);';
             const normal = 'background-color: transparent; color: rgba(255,255,255,0.82);';
             return base + (isActive ? active : normal);
