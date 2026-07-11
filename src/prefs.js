@@ -23,6 +23,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
             ['category-grouping', 'active'],
             ['icon-size', 'value'],
             ['icon-spacing', 'value'],
+            ['category-font-size', 'value'],
             ['show-workspaces', 'active']
         ];
 
