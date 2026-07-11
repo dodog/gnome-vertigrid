@@ -96,7 +96,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                 x_expand: false,
                 y_expand: true,
                 style_class: 'category-nav-box',
-                style: 'margin-right: 8px; padding: 8px 0 8px 8px; width: 140px;'
+                style: 'margin-right: 8px; padding: 8px 0 8px 8px; width: 220px;'
             });
 
             this._mainBox = new St.BoxLayout({
