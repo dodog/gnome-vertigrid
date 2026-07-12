@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.ez-launcher" path="/org/gnome/shell/extensions/ez-launcher/">
+
+    <key name="animate-scroll" type="b">
+      <default>true</default>
+    </key>
+
+    <key name="app-sorting" type="s">
+      <default>'usage'</default>
+    </key>
+
+    <key name="columns" type="i">
+      <default>9</default>
+    </key>
+
+    <key name="favorites-section" type="b">
+      <default>true</default>
+    </key>
+
+    <key name="favorites-sorting" type="s">
+      <default>'dash'</default>
+    </key>
+
+    <key name="category-grouping" type="b">
+      <default>true</default>
+    </key>
+
+    <key name="show-favorites-in-app-grid" type="b">
+      <default>false</default>
+    </key>
+
+    <key name="icon-size" type="i">
+      <default>64</default>
+    </key>
+
+    <key name="icon-spacing" type="i">
+      <default>24</default>
+    </key>
+
+    <key name="category-font-size" type="i">
+      <default>11</default>
+    </key>
+
+    <key name="show-workspaces" type="b">
+      <default>true</default>
+    </key>
+
+  </schema>
+</schemalist>
