@@ -4,7 +4,7 @@ vertical one. App icon size and spacing can be customized in the extension
 preferences. The implementation is very basic, so drag-and-drop reordering and
 app folders are currently not supported.
 
-**2026-06-25 update**
+- Add category navigation
 - Add category grouping feature
 - Add category grouping configuration
 - Add Chinese translation
@@ -16,3 +16,6 @@ app folders are currently not supported.
 
 ## Group layout by category
 ![Screenshot](assets/vertical-app-grid-categorize.png)
+
+## Left side category navigation
+![Screenshot](assets/vertical-app-grid-category-navigation.png)
