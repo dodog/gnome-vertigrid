@@ -5,8 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ez-launche\n"
-"POT-Creation-Date: \n"
+"Project-Id-Version: ez-launcher\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-12 00:00+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jozef Gaal <preklady@mayday.sk>\n"
 "Language-Team: Jozef Gaal <preklady@mayday.sk>\n"
@@ -22,11 +23,14 @@ msgstr "Obľúbené"
 msgid "All Apps"
 msgstr "Všetky aplikácie"
 
-msgid "Add to Favorites"
-msgstr "Pridať medzi obľúbené"
+msgid "Other"
+msgstr "Ostatné"
 
 msgid "Remove from Favorites"
 msgstr "Odstrániť z obľúbených"
+
+msgid "Add to Favorites"
+msgstr "Pridať medzi obľúbené"
 
 msgid "Preferences"
 msgstr "Predvoľby"
@@ -70,8 +74,11 @@ msgstr "Rozostup ikon"
 msgid "Show favorites in app grid"
 msgstr "Zobraziť obľúbené položky v mriežke aplikácií"
 
-msgid "When enabled, applications pinned to favorites will appear in the apps grid"
-msgstr "Ak je táto funkcia zapnutá, aplikácie pripnuté do obľúbených sa zobrazia v mriežke aplikácií"
+msgid ""
+"When enabled, applications pinned to favorites will appear in the apps grid"
+msgstr ""
+"Ak je táto funkcia zapnutá, aplikácie pripnuté do obľúbených sa zobrazia v "
+"mriežke aplikácií"
 
 msgid "Group by Category"
 msgstr "Zoskupiť podľa kategórie"
@@ -121,5 +128,14 @@ msgstr "Systém"
 msgid "Settings"
 msgstr "Nastavenia"
 
-msgid "Other"
-msgstr "Ostatné"
+msgid "Show Workspaces Bar"
+msgstr "Zobraziť prehľad pracovných plôch"
+
+msgid "Show workspace thumbnails at the top of the Overview"
+msgstr "Zobraziť miniatúry pracovných priestorov v hornej časti prehľadu"
+
+msgid "Category Label Size"
+msgstr "Veľkosť písma ponuky kategórií"
+
+msgid "Adjust the font size shown in the category navigation."
+msgstr "Nastaviť veľkosť písma zobrazeného v prehľade kategórií."
