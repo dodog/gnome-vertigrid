@@ -1,11 +1,11 @@
-# EZ - Launcher Extension Slovak Translation.
+# VertiGrid Extension Slovak Translation.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the EZ - Launcher package.
+# This file is distributed under the same license as the VertiGrid package.
 # Jozef Gaal <preklady@mayday.sk>, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ez-launcher\n"
+"Project-Id-Version: vertigrid\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-12 00:00+0000\n"
 "PO-Revision-Date: \n"

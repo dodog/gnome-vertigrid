@@ -1,9 +1,16 @@
 msgid ""
 msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-12 00:00+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Jozef Gaal <preklady@mayday.sk>\n"
+"Language-Team: \n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.9\n"
 
 msgid "Favorites"
 msgstr "收藏夹"
@@ -11,11 +18,14 @@ msgstr "收藏夹"
 msgid "All Apps"
 msgstr "所有应用"
 
-msgid "Add to Favorites"
-msgstr "收藏"
+msgid "Other"
+msgstr "其他"
 
 msgid "Remove from Favorites"
 msgstr "移除"
+
+msgid "Add to Favorites"
+msgstr "收藏"
 
 msgid "Preferences"
 msgstr "首选项"
@@ -41,22 +51,6 @@ msgstr "与 Dash 一致"
 msgid "Show Favorites Section"
 msgstr "显示收藏夹区域"
 
-msgid "Show favorites in app grid"
-msgstr "复制到收藏夹"
-
-msgid "When enabled, applications pinned to favorites will appear in the apps grid"
-msgstr "启用后，固定到收藏夹的应用程序将出现在应用程序网格中"
-
-
-msgid "Group by Category"
-msgstr "按类型分组"
-
-msgid "Edit Categories Profile"
-msgstr "编辑分组配置"
-
-msgid "Open the categories configuration file"
-msgstr "打开分组配置文件"
-
 msgid "Smooth Scrolling"
 msgstr "平滑滚动"
 
@@ -71,6 +65,21 @@ msgstr "图标大小"
 
 msgid "Icon Spacing"
 msgstr "图标间距"
+
+msgid "Show favorites in app grid"
+msgstr "复制到收藏夹"
+
+msgid "When enabled, applications pinned to favorites will appear in the apps grid"
+msgstr "启用后，固定到收藏夹的应用程序将出现在应用程序网格中"
+
+msgid "Group by Category"
+msgstr "按类型分组"
+
+msgid "Edit Categories Profile"
+msgstr "编辑分组配置"
+
+msgid "Open the categories configuration file"
+msgstr "打开分组配置文件"
 
 msgid "Development"
 msgstr "开发工具"
@@ -96,6 +105,12 @@ msgstr "图像图形"
 msgid "Education"
 msgstr "教育软件"
 
+msgid "Security"
+msgstr ""
+
+msgid "Chat"
+msgstr ""
+
 msgid "Game"
 msgstr "游戏"
 
@@ -111,5 +126,14 @@ msgstr "系统工具"
 msgid "Settings"
 msgstr "系统设置"
 
-msgid "Other"
-msgstr "其他"
+msgid "Show Workspaces Bar"
+msgstr ""
+
+msgid "Show workspace thumbnails at the top of the Overview"
+msgstr ""
+
+msgid "Category Label Size"
+msgstr ""
+
+msgid "Adjust the font size shown in the category navigation."
+msgstr ""
