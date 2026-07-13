@@ -33,19 +33,19 @@ const CATEGORY_ICONS = {
     AudioVideo: 'multimedia-symbolic',
     Audio: 'audio-x-generic-symbolic',
     Video: 'video-x-generic-symbolic',
-    Graphics: 'graphics-symbolic',
-    Translation: 'emblem-translate-symbolic',
-    WebDevelopment: 'internet-web-browser-symbolic',
+    Graphics: 'applications-graphics-symbolic',
+    Translation: 'lang-typedef-symbolic',
+    WebDevelopment: 'applications-internet-symbolic',
     PackageManager: 'package-x-generic-symbolic',
     Ebook: 'accessories-text-editor-symbolic',
     HardwareSettings: 'computer-symbolic',
-    Finance: 'wallet-symbolic',
+    Finance: 'bank-symbolic',
     Backup: 'document-save-symbolic',
     Security: 'security-high-symbolic',
     Chat: 'mail-message-new-symbolic',
-    Fonts: 'font-panel-symbolic',
+    Fonts: 'font-x-generic-symbolic',
     Education: 'accessories-calculator-symbolic',
-    Game: 'gamepad-symbolic',
+    Game: 'applications-games-symbolic',
     Utility: 'applications-utilities-symbolic',
     Accessories: 'applications-accessories-symbolic',
     System: 'computer-symbolic',
@@ -68,20 +68,14 @@ export const VerticalAppDisplay = GObject.registerClass(
                 reactive: true
             });
 
-            this._favoritesLabel = new St.Label({
-                text: _('Favorites'),
-                style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
-            });
+            this._favoritesLabel = this._createSectionHeader(_('Favorites'));
 
             this._favoritesView = new St.Viewport({
                 layout_manager: new VerticalLayout(settings),
                 style: 'overflow: hidden;'
             });
 
-            this._mainLabel = new St.Label({
-                text: _('All Apps'),
-                style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
-            });
+            this._mainLabel = this._createSectionHeader(_('All Apps'));
 
             this._mainView = new St.Viewport({
                 layout_manager: new VerticalLayout(settings),
@@ -115,7 +109,6 @@ export const VerticalAppDisplay = GObject.registerClass(
 
             this._navItems = [];
             this._navButtons = {};
-            this._navSeparators = [];
 
             this._appSystem = Shell.AppSystem.get_default();
             this._appUsage = Shell.AppUsage.get_default();
@@ -169,6 +162,33 @@ export const VerticalAppDisplay = GObject.registerClass(
             }, this);
         }
 
+        _createSectionHeader(text) {
+            const row = new St.BoxLayout({
+                vertical: false,
+                x_expand: true,
+                y_expand: false,
+                y_align: Clutter.ActorAlign.CENTER
+            });
+
+            const label = new St.Label({
+                text,
+                y_align: Clutter.ActorAlign.CENTER,
+                style: 'font-size: 16px; font-weight: 400; color: white; margin-right: 10px;'
+            });
+
+            const line = new St.Widget({
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+                style: 'min-height: 1px; background-gradient-direction: horizontal; background-gradient-start: rgba(255,255,255,0.3); background-gradient-end: rgba(255,255,255,0);'
+            });
+            line.set_height(1);
+
+            row.add_child(label);
+            row.add_child(line);
+
+            return row;
+        }
+
         _addAppIcons() {
             const iconSize = this._settings.get_int('icon-size');
             const favSection = this._settings.get_boolean('favorites-section');
@@ -189,10 +209,7 @@ export const VerticalAppDisplay = GObject.registerClass(
 
                 // First, add favorites section if enabled
                 if (favSection && appsByCategory._favorites.length > 0) {
-                    const favLabel = new St.Label({
-                        text: _('Favorites'),
-                        style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
-                    });
+                    const favLabel = this._createSectionHeader(_('Favorites'));
                     const favView = new St.Viewport({
                         layout_manager: new VerticalLayout(this._settings),
                         style: 'overflow: hidden;'
@@ -225,10 +242,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                 for (const category of CATEGORY_ORDER) {
                     const appIds = appsByCategory[category] || [];
 
-                    const label = new St.Label({
-                        text: _(category),
-                        style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
-                    });
+                    const label = this._createSectionHeader(_(category));
                     const view = new St.Viewport({
                         layout_manager: new VerticalLayout(this._settings),
                         style: 'overflow: hidden;'
@@ -260,10 +274,7 @@ export const VerticalAppDisplay = GObject.registerClass(
 
                 // Add Other category if it has apps
                 if (appsByCategory['Other'] && appsByCategory['Other'].length > 0) {
-                    const label = new St.Label({
-                        text: _('Other'),
-                        style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
-                    });
+                    const label = this._createSectionHeader(_('Other'));
                     const view = new St.Viewport({
                         layout_manager: new VerticalLayout(this._settings),
                         style: 'overflow: hidden;'
@@ -434,24 +445,13 @@ export const VerticalAppDisplay = GObject.registerClass(
             const fontSize = this._settings.get_int('category-font-size');
 
             visibleCategories.forEach((item, index) => {
-                // Insert a thin horizontal separator between each category,
-                // but not before the very first one.
-                if (index > 0) {
-                    const separator = new St.Widget({
-                        x_expand: true,
-                        style: 'height: 1px; margin: 4px 8px; background-color: rgba(255,255,255,0.12);'
-                    });
-                    this._navBox.add_child(separator);
-                    this._navSeparators.push(separator);
-                }
-
                 const button = new St.Button({
                     x_expand: true,
                     reactive: true,
                     can_focus: true,
                     y_expand: false,
                     y_align: Clutter.ActorAlign.CENTER,
-                    style: this._getCategoryButtonStyle(false)
+                    style: this._getCategoryButtonStyle()
                 });
                 button._categoryId = item.id;
 
@@ -467,7 +467,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                     icon_name: CATEGORY_ICONS[item.id] || 'applications-other-symbolic',
                     icon_size: 16,
                     y_align: Clutter.ActorAlign.CENTER,
-                    style: 'margin-right: 10px; opacity: 0.75;'
+                    style: this._getCategoryIconStyle(false, false)
                 });
                 const label = new St.Label({
                     text: item.label,
@@ -480,8 +480,14 @@ export const VerticalAppDisplay = GObject.registerClass(
                 categoryRow.add_child(label);
                 button.add_child(categoryRow);
 
+                button._icon = icon;
+
                 button.connect('clicked', () => {
                     this._scrollToCategory(item.id);
+                });
+
+                button.connect('notify::hover', () => {
+                    this._updateCategoryIconStyle(button);
                 });
 
                 this._navBox.add_child(button);
@@ -500,25 +506,42 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._navItems.forEach(button => button.destroy());
             this._navItems = [];
             this._navButtons = {};
-
-            this._navSeparators.forEach(sep => sep.destroy());
-            this._navSeparators = [];
-
             this._activeCategory = null;
         }
 
-        _getCategoryButtonStyle(isActive) {
-            const base = 'margin: 2px 0; padding: 6px 8px 4px 8px; border-radius: 12px; text-align: left; width: 100%; border: none;';
-            const active = 'background-color: rgba(255,255,255,0.16); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);';
-            const normal = 'background-color: transparent; color: rgba(255,255,255,0.92);';
-            return base + (isActive ? active : normal);
+        _getCategoryButtonStyle() {
+            // Background and border stay constant regardless of hover/active
+            // state - only the icon reacts, see _getCategoryIconStyle().
+            return 'margin: 2px 0; padding: 6px 8px 4px 8px; border-radius: 12px; text-align: left; width: 100%; border: none; border-bottom: 1px solid rgba(255,255,255,0.12); background-color: transparent; color: rgba(255,255,255,0.92);';
+        }
+
+        _getCategoryIconStyle(isActive, isHover) {
+            const base = 'margin-right: 10px;';
+
+            if (isActive) {
+                return `${base} opacity: 1;`;
+            }
+
+            if (isHover) {
+                return `${base} opacity: 0.85;`;
+            }
+
+            return `${base} opacity: 0.55;`;
+        }
+
+        _updateCategoryIconStyle(button) {
+            if (!button._icon) return;
+
+            const isActive = button._categoryId === this._activeCategory;
+            const isHover = button.hover;
+
+            button._icon.set_style(this._getCategoryIconStyle(isActive, isHover));
         }
 
         _setActiveCategory(category) {
             this._activeCategory = category;
             this._navItems.forEach(button => {
-                const isActive = button._categoryId === category;
-                button.set_style(this._getCategoryButtonStyle(isActive));
+                this._updateCategoryIconStyle(button);
             });
         }
 
@@ -709,6 +732,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                     this._categoryViews = {};
 
                     this._addAppIcons();
+                    this._updateLabelMargins();
                     this._animateRedisplay();
                 });
             });
@@ -726,22 +750,25 @@ export const VerticalAppDisplay = GObject.registerClass(
         _updateLabelMargins() {
             const spacing = this._settings.get_int('icon-spacing');
 
+            // Fixed gap above every section after the first one. 
+            const sectionGap = 40;
+
             // Original favorites label (non-category mode)
             if (this._favoritesLabel && this._favoritesLabel.visible) {
-                this._favoritesLabel.set_style(`margin: 0 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
+                this._favoritesLabel.set_style(`margin: 0 0 ${spacing}px 0;`);
             }
             // Original main label (non-category mode)
             if (this._mainLabel && this._mainLabel.visible) {
-                this._mainLabel.set_style(`margin: ${spacing * 2}px 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
+                this._mainLabel.set_style(`margin: ${sectionGap}px 0 ${spacing}px 0;`);
             }
 
             // Category labels (including _favorites in category mode)
             for (const category in this._categoryLabels) {
                 if (this._categoryLabels[category] && this._categoryLabels[category].visible) {
                     if (category === '_favorites') {
-                        this._categoryLabels[category].set_style(`margin: 0 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
+                        this._categoryLabels[category].set_style(`margin: 0 0 ${spacing}px 0;`);
                     } else {
-                        this._categoryLabels[category].set_style(`margin: ${spacing * 2}px 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
+                        this._categoryLabels[category].set_style(`margin: ${sectionGap}px 0 ${spacing}px 0;`);
                     }
                 }
             }
