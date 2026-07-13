@@ -69,8 +69,8 @@ export const VerticalAppDisplay = GObject.registerClass(
             });
 
             this._favoritesLabel = new St.Label({
-                style_class: 'search-statustext',
-                text: _('Favorites')
+                text: _('Favorites'),
+                style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
             });
 
             this._favoritesView = new St.Viewport({
@@ -79,8 +79,8 @@ export const VerticalAppDisplay = GObject.registerClass(
             });
 
             this._mainLabel = new St.Label({
-                style_class: 'search-statustext',
-                text: _('All Apps')
+                text: _('All Apps'),
+                style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
             });
 
             this._mainView = new St.Viewport({
@@ -115,6 +115,7 @@ export const VerticalAppDisplay = GObject.registerClass(
 
             this._navItems = [];
             this._navButtons = {};
+            this._navSeparators = [];
 
             this._appSystem = Shell.AppSystem.get_default();
             this._appUsage = Shell.AppUsage.get_default();
@@ -189,8 +190,8 @@ export const VerticalAppDisplay = GObject.registerClass(
                 // First, add favorites section if enabled
                 if (favSection && appsByCategory._favorites.length > 0) {
                     const favLabel = new St.Label({
-                        style_class: 'search-statustext',
-                        text: _('Favorites')
+                        text: _('Favorites'),
+                        style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
                     });
                     const favView = new St.Viewport({
                         layout_manager: new VerticalLayout(this._settings),
@@ -225,8 +226,8 @@ export const VerticalAppDisplay = GObject.registerClass(
                     const appIds = appsByCategory[category] || [];
 
                     const label = new St.Label({
-                        style_class: 'search-statustext',
-                        text: _(category)
+                        text: _(category),
+                        style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
                     });
                     const view = new St.Viewport({
                         layout_manager: new VerticalLayout(this._settings),
@@ -260,8 +261,8 @@ export const VerticalAppDisplay = GObject.registerClass(
                 // Add Other category if it has apps
                 if (appsByCategory['Other'] && appsByCategory['Other'].length > 0) {
                     const label = new St.Label({
-                        style_class: 'search-statustext',
-                        text: _('Other')
+                        text: _('Other'),
+                        style: 'font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);'
                     });
                     const view = new St.Viewport({
                         layout_manager: new VerticalLayout(this._settings),
@@ -433,6 +434,17 @@ export const VerticalAppDisplay = GObject.registerClass(
             const fontSize = this._settings.get_int('category-font-size');
 
             visibleCategories.forEach((item, index) => {
+                // Insert a thin horizontal separator between each category,
+                // but not before the very first one.
+                if (index > 0) {
+                    const separator = new St.Widget({
+                        x_expand: true,
+                        style: 'height: 1px; margin: 4px 8px; background-color: rgba(255,255,255,0.12);'
+                    });
+                    this._navBox.add_child(separator);
+                    this._navSeparators.push(separator);
+                }
+
                 const button = new St.Button({
                     x_expand: true,
                     reactive: true,
@@ -461,7 +473,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                     text: item.label,
                     style_class: 'search-statustext',
                     y_align: Clutter.ActorAlign.CENTER,
-                    style: `font-weight: 500; font-size: ${fontSize}px; margin: 0;`
+                    style: `font-weight: 500; font-size: ${Math.max(fontSize - 2, 11)}px; margin: 0; color: rgba(255,255,255,0.96);`
                 });
 
                 categoryRow.add_child(icon);
@@ -488,13 +500,17 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._navItems.forEach(button => button.destroy());
             this._navItems = [];
             this._navButtons = {};
+
+            this._navSeparators.forEach(sep => sep.destroy());
+            this._navSeparators = [];
+
             this._activeCategory = null;
         }
 
         _getCategoryButtonStyle(isActive) {
-            const base = 'margin: 2px 0; padding: 4px 8px; border-radius: 12px; text-align: left; width: 100%; border: none;';
+            const base = 'margin: 2px 0; padding: 6px 8px 4px 8px; border-radius: 12px; text-align: left; width: 100%; border: none;';
             const active = 'background-color: rgba(255,255,255,0.16); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);';
-            const normal = 'background-color: transparent; color: rgba(255,255,255,0.82);';
+            const normal = 'background-color: transparent; color: rgba(255,255,255,0.92);';
             return base + (isActive ? active : normal);
         }
 
@@ -712,20 +728,20 @@ export const VerticalAppDisplay = GObject.registerClass(
 
             // Original favorites label (non-category mode)
             if (this._favoritesLabel && this._favoritesLabel.visible) {
-                this._favoritesLabel.set_style(`margin: 0 0 ${spacing}px 0;`);
+                this._favoritesLabel.set_style(`margin: 0 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
             }
             // Original main label (non-category mode)
             if (this._mainLabel && this._mainLabel.visible) {
-                this._mainLabel.set_style(`margin: ${spacing * 2}px 0 ${spacing}px 0;`);
+                this._mainLabel.set_style(`margin: ${spacing * 2}px 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
             }
 
             // Category labels (including _favorites in category mode)
             for (const category in this._categoryLabels) {
                 if (this._categoryLabels[category] && this._categoryLabels[category].visible) {
                     if (category === '_favorites') {
-                        this._categoryLabels[category].set_style(`margin: 0 0 ${spacing}px 0;`);
+                        this._categoryLabels[category].set_style(`margin: 0 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
                     } else {
-                        this._categoryLabels[category].set_style(`margin: ${spacing * 2}px 0 ${spacing}px 0;`);
+                        this._categoryLabels[category].set_style(`margin: ${spacing * 2}px 0 ${spacing}px 0; font-size: 16px; font-weight: 400; color: white; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3);`);
                     }
                 }
             }
