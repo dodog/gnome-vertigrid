@@ -116,6 +116,7 @@ export const VerticalAppDisplay = GObject.registerClass(
 
             this._navItems = [];
             this._navButtons = {};
+            this._bottomSpacer = null;
 
             this._appSystem = Shell.AppSystem.get_default();
             this._appUsage = Shell.AppUsage.get_default();
@@ -422,6 +423,21 @@ export const VerticalAppDisplay = GObject.registerClass(
                 this._mainLabel.visible = showMainLabel;
                 this._mainView.visible = showMainSection;
             }
+
+            // Extra space after the last section so it can be scrolled
+            // further up rather than stopping flush with the bottom edge.
+            if (this._bottomSpacer) {
+                try {
+                    this._bottomSpacer.destroy();
+                } catch (e) {}
+                this._bottomSpacer = null;
+            }
+
+            this._bottomSpacer = new St.Widget({
+                x_expand: true
+            });
+            this._bottomSpacer.set_height(120);
+            this._scrollView.add_child(this._bottomSpacer);
         }
 
         _buildCategoryNav(appsByCategory) {
@@ -765,7 +781,7 @@ export const VerticalAppDisplay = GObject.registerClass(
             // Fixed gap above every section after the first one. Kept independent
             // of icon-spacing since multi-line app icon labels can run tall
             // enough to butt up against the next section's separator line.
-            const sectionGap = 40;
+            const sectionGap = 50;
 
             // Original favorites label (non-category mode)
             if (this._favoritesLabel && this._favoritesLabel.visible) {
