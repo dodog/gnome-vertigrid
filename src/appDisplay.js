@@ -52,6 +52,12 @@ const CATEGORY_ICONS = {
     Settings: 'emblem-system-symbolic'
 };
 
+// Clutter actor opacity is 0-255. These drive the category-nav icon states:
+// dim by default, a bit brighter on hover, fully bright when active.
+const ICON_OPACITY_DEFAULT = 140;
+const ICON_OPACITY_HOVER = 217;
+const ICON_OPACITY_ACTIVE = 255;
+
 function easeOutCubic(t) {
     return (--t) * t * t + 1;
 }
@@ -467,7 +473,8 @@ export const VerticalAppDisplay = GObject.registerClass(
                     icon_name: CATEGORY_ICONS[item.id] || 'applications-other-symbolic',
                     icon_size: 16,
                     y_align: Clutter.ActorAlign.CENTER,
-                    style: this._getCategoryIconStyle(false, false)
+                    style: 'margin-right: 10px;',
+                    opacity: ICON_OPACITY_DEFAULT
                 });
                 const label = new St.Label({
                     text: item.label,
@@ -481,13 +488,21 @@ export const VerticalAppDisplay = GObject.registerClass(
                 button.add_child(categoryRow);
 
                 button._icon = icon;
+                button._isHovered = false;
 
                 button.connect('clicked', () => {
                     this._scrollToCategory(item.id);
                 });
 
-                button.connect('notify::hover', () => {
-                    this._updateCategoryIconStyle(button);
+                // Use explicit enter/leave events rather than the St.Button
+                // 'hover' property - reliable regardless of track-hover wiring.
+                button.connect('enter-event', () => {
+                    button._isHovered = true;
+                    this._updateCategoryIconOpacity(button);
+                });
+                button.connect('leave-event', () => {
+                    button._isHovered = false;
+                    this._updateCategoryIconOpacity(button);
                 });
 
                 this._navBox.add_child(button);
@@ -511,37 +526,30 @@ export const VerticalAppDisplay = GObject.registerClass(
 
         _getCategoryButtonStyle() {
             // Background and border stay constant regardless of hover/active
-            // state - only the icon reacts, see _getCategoryIconStyle().
+            // state - only the icon reacts, see _updateCategoryIconOpacity().
             return 'margin: 2px 0; padding: 6px 8px 4px 8px; border-radius: 12px; text-align: left; width: 100%; border: none; border-bottom: 1px solid rgba(255,255,255,0.12); background-color: transparent; color: rgba(255,255,255,0.92);';
         }
 
-        _getCategoryIconStyle(isActive, isHover) {
-            const base = 'margin-right: 10px;';
-
-            if (isActive) {
-                return `${base} opacity: 1;`;
-            }
-
-            if (isHover) {
-                return `${base} opacity: 0.85;`;
-            }
-
-            return `${base} opacity: 0.55;`;
-        }
-
-        _updateCategoryIconStyle(button) {
+        _updateCategoryIconOpacity(button) {
             if (!button._icon) return;
 
             const isActive = button._categoryId === this._activeCategory;
-            const isHover = button.hover;
+            const isHover = !!button._isHovered;
 
-            button._icon.set_style(this._getCategoryIconStyle(isActive, isHover));
+            let opacity = ICON_OPACITY_DEFAULT;
+            if (isActive) {
+                opacity = ICON_OPACITY_ACTIVE;
+            } else if (isHover) {
+                opacity = ICON_OPACITY_HOVER;
+            }
+
+            button._icon.set_opacity(opacity);
         }
 
         _setActiveCategory(category) {
             this._activeCategory = category;
             this._navItems.forEach(button => {
-                this._updateCategoryIconStyle(button);
+                this._updateCategoryIconOpacity(button);
             });
         }
 
@@ -750,7 +758,7 @@ export const VerticalAppDisplay = GObject.registerClass(
         _updateLabelMargins() {
             const spacing = this._settings.get_int('icon-spacing');
 
-            // Fixed gap above every section after the first one. 
+            // Fixed gap above every section after the first one. Kept independent
             const sectionGap = 40;
 
             // Original favorites label (non-category mode)
