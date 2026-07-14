@@ -559,7 +559,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                 return;
             }
 
-            this._scrollView.scrollToChild(target);
+            this._scrollView.scrollToChild(target, 'top');
             this._setActiveCategory(category);
         }
 
@@ -1270,7 +1270,7 @@ const VerticalScrollView = GObject.registerClass(
             return this._scrollBox;
         }
 
-        scrollToChild(child) {
+        scrollToChild(child, align = 'center') {
             const childBox = child.get_allocation_box();
 
             // Get the child's vertical position inside the scroll view
@@ -1281,11 +1281,19 @@ const VerticalScrollView = GObject.registerClass(
                 childY += actor.get_allocation_box().y1;
             }
 
-            // Scroll to keep the child vertically centered
             const adjustment = this.vadjustment;
 
-            const childCenter = childY + childBox.get_height() / 2;
-            const scroll = childCenter - adjustment.page_size / 2;
+            let scroll;
+            if (align === 'top') {
+                // Scroll so the child sits at the top of the viewport, with a
+                // small amount of breathing room above it.
+                const topPadding = 8;
+                scroll = childY - topPadding;
+            } else {
+                // Scroll to keep the child vertically centered
+                const childCenter = childY + childBox.get_height() / 2;
+                scroll = childCenter - adjustment.page_size / 2;
+            }
 
             this.scrollTo(scroll);
         }
