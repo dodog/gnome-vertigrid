@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
+import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
@@ -1145,7 +1146,57 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._cancelActiveDrag();
         }
 
+        _findLabelActor(actor) {
+            if (actor instanceof St.Label) {
+                return actor;
+            }
+
+            const children = actor.get_children ? actor.get_children() : [];
+            for (const child of children) {
+                const found = this._findLabelActor(child);
+                if (found) {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        _showFullAppLabel(appIcon) {
+            // AppDisplay.AppIcon truncates the name to a single ellipsized
+            // line by default and only shows the full name as a hover
+            // overlay. Force it to always wrap onto multiple lines instead.
+            let label = null;
+            try {
+                if (appIcon.icon && appIcon.icon.label instanceof St.Label) {
+                    label = appIcon.icon.label;
+                } else if (appIcon.label instanceof St.Label) {
+                    label = appIcon.label;
+                } else {
+                    label = this._findLabelActor(appIcon);
+                }
+            } catch (e) {}
+
+            if (!label || !label.clutter_text) return;
+
+            try {
+                const clutterText = label.clutter_text;
+                clutterText.set_line_wrap(true);
+                clutterText.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
+                clutterText.set_single_line_mode(false);
+                clutterText.ellipsize = Pango.EllipsizeMode.END;
+                label.set_style('text-align: center;');
+            } catch (e) {}
+        }
+
         _attachDragHandlers(appIcon) {
+            this._showFullAppLabel(appIcon);
+
+            // Re-apply override every time hover changes
+            appIcon.connect('notify::hover', () => {
+                this._showFullAppLabel(appIcon);
+            });
+
             appIcon.reactive = true;
             appIcon.connect('button-press-event', (actor, event) => {
                 try {
