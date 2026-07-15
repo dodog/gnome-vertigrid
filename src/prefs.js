@@ -2,7 +2,12 @@ import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 
 import {
-    ExtensionPreferences
+    DEFAULT_CATEGORIES
+} from './categories.js';
+
+import {
+    ExtensionPreferences,
+    gettext as _
 } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 export default class EssentialTweaksPreferences extends ExtensionPreferences {
@@ -34,24 +39,340 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         this._bindComboRow(builder, settings, 'app-sorting', ['usage', 'alphabetical']);
         this._bindComboRow(builder, settings, 'favorites-sorting', ['dash', 'usage', 'alphabetical']);
 
-        const editCategoriesBtn = builder.get_object('edit-categories-btn');
-        editCategoriesBtn.connect('clicked', () => {
-            console.log('Editing categories profile...');
-            console.log(`File path: ${this.path}/categories.js`);
+        const editCategoriesBtn = builder.get_object('edit-custom-categories-btn');
+        const editCategoriesRow = builder.get_object('edit-custom-categories');
 
-            const filePath = Gio.File.new_for_path(`${this.path}/categories.js`);
-            const uri = filePath.get_uri();
+        // Guard against the row's activatable-widget forwarding the click
+        // to the button AND the row itself firing activate/activated for
+        // the same click, which would otherwise open two dialogs at once.
+        let dialogOpen = false;
+        const openCustomCategoriesEditor = () => {
+            if (dialogOpen) {
+                return;
+            }
+            dialogOpen = true;
+            this._showCustomCategoriesEditor(window, settings, () => {
+                dialogOpen = false;
+            });
+        };
 
-            console.log(`URI: ${uri}`);
+        if (editCategoriesBtn) {
+            editCategoriesBtn.connect('clicked', openCustomCategoriesEditor);
+        }
 
-            Gio.AppInfo.launch_default_for_uri_async(uri, null, null, null, (result, error) => {
-                if (error) {
-                    console.error(`Failed to open file: ${error.message}`);
-                } else {
-                    console.log('File opened successfully');
+        if (editCategoriesRow && editCategoriesRow.connect) {
+            editCategoriesRow.connect('activate', openCustomCategoriesEditor);
+            editCategoriesRow.connect('activated', openCustomCategoriesEditor);
+        }
+    }
+
+    _showCustomCategoriesEditor(window, settings, onClosed) {
+        const dialog = new Gtk.Dialog({
+            transient_for: window,
+            modal: true,
+            title: _('Edit Custom Categories'),
+            default_width: 640,
+            default_height: 520,
+            use_header_bar: true
+        });
+
+        dialog.add_button(_('Cancel'), Gtk.ResponseType.CANCEL);
+        dialog.add_button(_('Save'), Gtk.ResponseType.OK);
+
+        const contentArea = dialog.get_content_area();
+        const outerBox = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 10,
+            margin_top: 12,
+            margin_bottom: 12,
+            margin_start: 12,
+            margin_end: 12
+        });
+        contentArea.append(outerBox);
+
+        const hintLabel = new Gtk.Label({
+            xalign: 0,
+            wrap: true,
+            label: _('Add a custom category, choose whether it is enabled, and optionally merge it into an existing category name (e.g. merge "Authy" into "Security").')
+        });
+        outerBox.append(hintLabel);
+
+        const scroller = new Gtk.ScrolledWindow({
+            vexpand: true,
+            hexpand: true,
+            min_content_height: 320
+        });
+        outerBox.append(scroller);
+
+        const listBox = new Gtk.ListBox({
+            selection_mode: Gtk.SelectionMode.NONE
+        });
+        listBox.add_css_class('boxed-list');
+        scroller.set_child(listBox);
+
+        // Each row's live widgets, so we can read their current values on Save.
+        const rows = [];
+
+        const addRow = (name = '', enabled = true, merge = false) => {
+            const row = new Gtk.ListBoxRow({
+                activatable: false
+            });
+
+            const rowBox = new Gtk.Box({
+                orientation: Gtk.Orientation.VERTICAL,
+                spacing: 6,
+                margin_top: 10,
+                margin_bottom: 10,
+                margin_start: 10,
+                margin_end: 10
+            });
+            row.set_child(rowBox);
+
+            // Line 1: category name + enabled switch + remove button
+            const topLine = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 8
+            });
+            rowBox.append(topLine);
+
+            const nameEntry = new Gtk.Entry({
+                hexpand: true,
+                placeholder_text: _('Category name (e.g. Authy)'),
+                text: name
+            });
+            topLine.append(nameEntry);
+
+            const enabledLabel = new Gtk.Label({
+                label: _('Enabled')
+            });
+            topLine.append(enabledLabel);
+
+            const enabledSwitch = new Gtk.Switch({
+                active: Boolean(enabled),
+                valign: Gtk.Align.CENTER
+            });
+            topLine.append(enabledSwitch);
+
+            const removeBtn = new Gtk.Button({
+                icon_name: 'user-trash-symbolic',
+                valign: Gtk.Align.CENTER
+            });
+            removeBtn.add_css_class('flat');
+            topLine.append(removeBtn);
+
+            // Line 2: merge target
+            const bottomLine = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 8
+            });
+            rowBox.append(bottomLine);
+
+            const mergeCheck = new Gtk.CheckButton({
+                label: _('Merge into another category'),
+                active: Boolean(merge)
+            });
+            bottomLine.append(mergeCheck);
+
+            const mergeEntry = new Gtk.Entry({
+                hexpand: true,
+                placeholder_text: _('Target category name (e.g. Security)'),
+                text: merge ? String(merge) : '',
+                sensitive: Boolean(merge)
+            });
+            bottomLine.append(mergeEntry);
+
+            mergeCheck.connect('toggled', () => {
+                mergeEntry.sensitive = mergeCheck.active;
+                if (!mergeCheck.active) {
+                    mergeEntry.set_text('');
                 }
             });
+
+            removeBtn.connect('clicked', () => {
+                const idx = rows.indexOf(rowEntry);
+                if (idx >= 0) {
+                    rows.splice(idx, 1);
+                }
+                listBox.remove(row);
+            });
+
+            const rowEntry = {
+                nameEntry,
+                enabledSwitch,
+                mergeCheck,
+                mergeEntry
+            };
+            rows.push(rowEntry);
+
+            listBox.append(row);
+            return rowEntry;
+        };
+
+        // Populate from existing setting.
+        const existing = this._loadExistingCategories(settings);
+        for (const category of existing) {
+            addRow(category.name, category.enabled, category.merge);
+        }
+
+        const addCategoryBtn = new Gtk.Button({
+            label: _('Add category'),
+            icon_name: 'list-add-symbolic',
+            halign: Gtk.Align.START
         });
+        outerBox.append(addCategoryBtn);
+        addCategoryBtn.connect('clicked', () => {
+            const rowEntry = addRow();
+            rowEntry.nameEntry.grab_focus();
+        });
+
+        const errorLabel = new Gtk.Label({
+            xalign: 0,
+            wrap: true,
+            visible: false
+        });
+        errorLabel.add_css_class('error');
+        outerBox.append(errorLabel);
+
+        dialog.connect('response', (_dialog, responseId) => {
+            if (responseId === Gtk.ResponseType.OK) {
+                const {
+                    categories,
+                    errorMessage
+                } = this._collectCategories(rows);
+
+                if (errorMessage) {
+                    errorLabel.set_text(errorMessage);
+                    errorLabel.visible = true;
+                    dialog.present();
+                    return;
+                }
+
+                try {
+                    settings.set_string('custom-categories', JSON.stringify(categories));
+                    dialog.destroy();
+                } catch (e) {
+                    errorLabel.set_text(_('Failed to save custom categories: ') + e.message);
+                    errorLabel.visible = true;
+                    dialog.present();
+                }
+            } else {
+                dialog.destroy();
+            }
+        });
+
+        dialog.connect('close-request', () => {
+            if (onClosed) {
+                onClosed();
+            }
+            return false;
+        });
+        dialog.connect('destroy', () => {
+            if (onClosed) {
+                onClosed();
+            }
+        });
+
+        dialog.present();
+    }
+
+    _collectCategories(rows) {
+        const categories = [];
+        const seenNames = new Set();
+
+        for (const rowEntry of rows) {
+            const name = rowEntry.nameEntry.get_text().trim();
+            if (!name) {
+                // Skip empty rows silently instead of erroring, so users
+                // can add a blank row and just leave it unused.
+                continue;
+            }
+
+            const key = name.toLowerCase();
+            if (seenNames.has(key)) {
+                return {
+                    categories: [],
+                    errorMessage: _('Duplicate category name: ') + name
+                };
+            }
+            seenNames.add(key);
+
+            const enabled = rowEntry.enabledSwitch.get_active();
+            const mergeEnabled = rowEntry.mergeCheck.get_active();
+            const mergeTarget = rowEntry.mergeEntry.get_text().trim();
+
+            let merge = false;
+            if (mergeEnabled) {
+                if (!mergeTarget) {
+                    return {
+                        categories: [],
+                        errorMessage: _('Enter a target category to merge "') + name + _('" into, or uncheck "Merge into another category".')
+                    };
+                }
+                merge = mergeTarget;
+            }
+
+            categories.push({
+                name,
+                enabled,
+                merge
+            });
+        }
+
+        return {
+            categories,
+            errorMessage: null
+        };
+    }
+
+    _loadExistingCategories(settings) {
+        // Start from the built-in defaults so the user can see and edit
+        // (enable/disable, merge) the standard categories too, not just
+        // ones they've added.
+        const merged = DEFAULT_CATEGORIES.map(c => ({
+            name: c.name,
+            enabled: c.hasOwnProperty('enabled') ? Boolean(c.enabled) : true,
+            merge: (c.merge && c.merge !== false) ? String(c.merge) : false
+        }));
+
+        const raw = this._getSettingsString(settings, 'custom-categories', '[]');
+        let stored = [];
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                stored = parsed
+                    .filter(c => c && typeof c === 'object' && c.name)
+                    .map(c => ({
+                        name: String(c.name),
+                        enabled: c.hasOwnProperty('enabled') ? Boolean(c.enabled) : true,
+                        merge: (c.merge && c.merge !== false) ? String(c.merge) : false
+                    }));
+            }
+        } catch (e) {
+            log(`vertigrid: Failed to parse custom categories: ${e}`);
+        }
+
+        // Any stored entry overrides a default with the same name
+        // (case-insensitive), or gets appended as an extra custom category.
+        for (const category of stored) {
+            const key = category.name.toLowerCase();
+            const existingIndex = merged.findIndex(c => c.name.toLowerCase() === key);
+            if (existingIndex >= 0) {
+                merged[existingIndex] = category;
+            } else {
+                merged.push(category);
+            }
+        }
+
+        return merged;
+    }
+
+    _getSettingsString(settings, key, fallback = '') {
+        try {
+            return settings.get_string(key) || fallback;
+        } catch (e) {
+            log(`vertigrid: Failed to read ${key}: ${e}`);
+            return fallback;
+        }
     }
 
     _bindComboRow(builder, settings, key, values) {
