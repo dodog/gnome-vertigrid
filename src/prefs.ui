@@ -65,12 +65,12 @@
         </child>
 
         <child>
-          <object class="AdwActionRow" id="edit-categories">
-            <property name="title" translatable="yes">Edit Categories Profile</property>
-            <property name="subtitle" translatable="yes">Open the categories configuration file</property>
-            <property name="activatable-widget">edit-categories-btn</property>
+          <object class="AdwActionRow" id="edit-custom-categories">
+            <property name="title" translatable="yes">Edit Custom Categories</property>
+            <property name="subtitle" translatable="yes">Open the custom category editor</property>
+            <property name="activatable-widget">edit-custom-categories-btn</property>
             <child>
-              <object class="GtkButton" id="edit-categories-btn">
+              <object class="GtkButton" id="edit-custom-categories-btn">
                 <property name="valign">center</property>
                 <property name="icon-name">document-edit-symbolic</property>
                 <style>
