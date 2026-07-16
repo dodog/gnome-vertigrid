@@ -113,7 +113,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         // Each row's live widgets, so we can read their current values on Save.
         const rows = [];
 
-        const addRow = (name = '', enabled = true, merge = false, isDefault = false) => {
+        const addRow = (name = '', enabled = true, merge = false, isDefault = false, insertAtTop = false) => {
             const row = new Gtk.ListBoxRow({
                 activatable: false
             });
@@ -137,7 +137,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
 
             const nameEntry = new Gtk.Entry({
                 hexpand: true,
-                placeholder_text: _('Category name (e.g. Fonts)'),
+                placeholder_text: _('Category name (e.g. Authy)'),
                 text: isDefault ? _(name) : name,
                 editable: !isDefault,
                 can_focus: !isDefault
@@ -225,13 +225,49 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
             };
             rows.push(rowEntry);
 
-            listBox.append(row);
+            if (insertAtTop) {
+                listBox.insert(row, 0);
+            } else {
+                listBox.append(row);
+            }
             return rowEntry;
         };
 
-        // Populate from existing setting.
+        // Populate custom categories first, then a separator, then the
+        // built-in categories below it.
         const existing = this._loadExistingCategories(settings);
-        for (const category of existing) {
+        const customCategories = existing.filter(c => !c.isDefault);
+        const defaultCategories = existing.filter(c => c.isDefault);
+
+        for (const category of customCategories) {
+            addRow(category.name, category.enabled, category.merge, category.isDefault);
+        }
+
+        const separatorRow = new Gtk.ListBoxRow({
+            activatable: false,
+            selectable: false
+        });
+        const separatorBox = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 4,
+            margin_top: 8,
+            margin_bottom: 4
+        });
+        separatorBox.append(new Gtk.Separator({
+            orientation: Gtk.Orientation.HORIZONTAL
+        }));
+        const separatorLabel = new Gtk.Label({
+            label: _('Default categories'),
+            halign: Gtk.Align.CENTER,
+            margin_top: 4
+        });
+        separatorLabel.add_css_class('dim-label');
+        separatorLabel.add_css_class('caption-heading');
+        separatorBox.append(separatorLabel);
+        separatorRow.set_child(separatorBox);
+        listBox.append(separatorRow);
+
+        for (const category of defaultCategories) {
             addRow(category.name, category.enabled, category.merge, category.isDefault);
         }
 
@@ -242,7 +278,11 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         });
         outerBox.append(addCategoryBtn);
         addCategoryBtn.connect('clicked', () => {
-            const rowEntry = addRow();
+            const rowEntry = addRow('', true, false, false, true);
+            const vadjustment = scroller.get_vadjustment();
+            if (vadjustment) {
+                vadjustment.set_value(0);
+            }
             rowEntry.nameEntry.grab_focus();
         });
 
@@ -303,10 +343,12 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
             modal: true,
             title: _('Custom Categories Saved'),
             default_width: 420,
-            use_header_bar: true
+            use_header_bar: false
         });
 
-        noticeDialog.add_button(_('OK'), Gtk.ResponseType.OK);
+        const okBtn = noticeDialog.add_button(_('OK'), Gtk.ResponseType.OK);
+        okBtn.add_css_class('suggested-action');
+        noticeDialog.set_default_response(Gtk.ResponseType.OK);
 
         const contentArea = noticeDialog.get_content_area();
         const box = new Gtk.Box({
@@ -342,10 +384,19 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
     }
 
     _collectCategories(rows) {
+        // Save order is independent of the editor's visual order (customs
+        // shown on top, defaults below): built-ins are always written
+        // first, in their original order, then customs after. This keeps
+        // the app grid's actual category ordering stable regardless of how
+        // the editor happens to lay rows out on screen.
+        const defaultRows = rows.filter(r => r.isDefault);
+        const customRows = rows.filter(r => !r.isDefault);
+        const orderedRows = [...defaultRows, ...customRows];
+
         const categories = [];
         const seenNames = new Set();
 
-        for (const rowEntry of rows) {
+        for (const rowEntry of orderedRows) {
             const name = rowEntry.isDefault ?
                 rowEntry.canonicalName :
                 rowEntry.nameEntry.get_text().trim();
