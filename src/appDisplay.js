@@ -62,7 +62,14 @@ const ICON_OPACITY_ACTIVE = 255;
 // Left nav stays a fixed width at all times; only the category labels
 // fade in/out depending on whether the pointer is over the nav.
 const NAV_WIDTH = 220;
-const NAV_TRANSITION_DURATION = 200;
+const NAV_TRANSITION_DURATION = 350;
+
+// Each nav button's height eases between these two values on nav hover -
+// tight by default so icons sit closer together, roomier (the original
+// look) once the pointer is over the nav. Content stays vertically
+// centered in the button, so the extra height reads as extra padding.
+const NAV_ITEM_HEIGHT_COLLAPSED = 30;
+const NAV_ITEM_HEIGHT_EXPANDED = 35;
 
 function easeOutCubic(t) {
     return (--t) * t * t + 1;
@@ -104,7 +111,8 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._navBox = new St.BoxLayout({
                 vertical: true,
                 x_expand: false,
-                y_expand: true,
+                y_expand: false,
+                y_align: Clutter.ActorAlign.CENTER,
                 reactive: true,
                 style_class: 'category-nav-box',
                 style: `margin-right: 8px; padding: 8px 0 8px 8px; width: ${NAV_WIDTH}px; overflow: hidden;`
@@ -127,6 +135,7 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._navItems = [];
             this._navButtons = {};
             this._categoryOrder = [];
+            this._navAnim = null;
             this._bottomSpacer = null;
 
             this._appSystem = Shell.AppSystem.get_default();
@@ -566,8 +575,10 @@ export const VerticalAppDisplay = GObject.registerClass(
 
                 // Apply the current expanded/collapsed state immediately -
                 // no animation - so a redisplay (settings change, app
-                // install, etc.) doesn't flash labels visible for a frame.
+                // install, etc.) doesn't flash labels or spacing for a
+                // frame.
                 label.set_opacity(this._navCollapsed ? 0 : 255);
+                button.set_height(this._navCollapsed ? NAV_ITEM_HEIGHT_COLLAPSED : NAV_ITEM_HEIGHT_EXPANDED);
 
                 button.connect('clicked', () => {
                     this._scrollToCategory(item.id);
@@ -607,7 +618,12 @@ export const VerticalAppDisplay = GObject.registerClass(
         _getCategoryButtonStyle() {
             // Background and border stay constant regardless of hover/active
             // state - only the icon reacts, see _updateCategoryIconOpacity().
-            return 'margin: 2px 0; padding: 6px 8px 4px 8px; border-radius: 12px; text-align: left; width: 100%; border: none; border-bottom: 1px solid rgba(255,255,255,0.12); background-color: transparent; color: rgba(255,255,255,0.92);';
+            // Vertical padding here is nominal; actual row height is driven
+            // explicitly via set_height() in _setNavCollapsed(). No CSS
+            // width here - x_expand: true on the button already makes it
+            // fill navBox's width, and St's CSS engine doesn't support
+            // percentage lengths anyway.
+            return 'margin: 1px 0; padding: 4px 8px; border-radius: 12px; text-align: left; border: none; border-bottom: 1px solid rgba(255,255,255,0.12); background-color: transparent; color: rgba(255,255,255,0.92);';
         }
 
         _updateCategoryIconOpacity(button) {
@@ -643,10 +659,22 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._setActiveCategory(category);
         }
 
-        // Fades every button's label opacity to show/hide category names on
-        // hover of the whole nav. Width is fixed and never touched here -
-        // independent of per-button hover, which only ever touches icon
-        // opacity (see _updateCategoryIconOpacity).
+        // Fades every button's label opacity and grows/shrinks its height to
+        // show category names and give icons more breathing room on hover of
+        // the whole nav. Width is fixed and never touched here - independent
+        // of per-button hover, which only ever touches icon opacity (see
+        // _updateCategoryIconOpacity).
+        //
+        // Deliberately NOT using actor.ease({height: ...}): Clutter special-
+        // cases x/y/width/height as "animatable" properties by interpolating
+        // the actor's own allocation directly and skipping the parent
+        // LayoutManager on every frame, so sibling buttons in navBox would
+        // only snap to their new stacked position once some unrelated
+        // relayout happened to fire - the list looked like it jumped instead
+        // of reflowing. Driving it manually with plain set_height() calls
+        // (same after-paint frame-loop pattern as VerticalScrollView's smooth
+        // scroll) uses the normal code path, which queues a full relayout
+        // every frame.
         _setNavCollapsed(collapsed, animate = true) {
             if (this._navCollapsed === collapsed) {
                 return;
@@ -654,24 +682,95 @@ export const VerticalAppDisplay = GObject.registerClass(
 
             this._navCollapsed = collapsed;
 
-            const labelOpacity = collapsed ? 0 : 255;
+            const targetHeight = collapsed ? NAV_ITEM_HEIGHT_COLLAPSED : NAV_ITEM_HEIGHT_EXPANDED;
+            const targetOpacity = collapsed ? 0 : 255;
+
+            if (!animate) {
+                this._cancelNavAnimation();
+                this._navItems.forEach(button => {
+                    button.set_height(targetHeight);
+                    if (button._label) {
+                        button._label.set_opacity(targetOpacity);
+                    }
+                });
+                return;
+            }
+
+            this._startNavAnimation(targetHeight, targetOpacity);
+        }
+
+        _startNavAnimation(targetHeight, targetOpacity) {
+            this._cancelNavAnimation();
+
+            if (this._navItems.length === 0) {
+                return;
+            }
+
+            // All buttons always move together, so the first one's current
+            // (possibly mid-animation) values are a valid start point for
+            // every button - this also makes reversing direction mid-flight
+            // (e.g. a quick in-and-out hover) continue smoothly instead of
+            // jumping back to a fixed start value.
+            const first = this._navItems[0];
+            const startHeight = first.height;
+            const startOpacity = first._label ? first._label.opacity : targetOpacity;
+
+            const deltaHeight = targetHeight - startHeight;
+            const deltaOpacity = targetOpacity - startOpacity;
+
+            if (deltaHeight === 0 && deltaOpacity === 0) {
+                return;
+            }
+
+            this._navAnim = {
+                startTime: GLib.get_monotonic_time(),
+                duration: NAV_TRANSITION_DURATION * 1000,
+                startHeight,
+                deltaHeight,
+                startOpacity,
+                deltaOpacity,
+                lock: null
+            };
+
+            this._navAnim.lock = global.stage.connect('after-paint', () => this._navAnimationFrame());
+        }
+
+        _navAnimationFrame() {
+            const anim = this._navAnim;
+            if (!anim) {
+                return;
+            }
+
+            const now = GLib.get_monotonic_time();
+            const progress = Math.min(Math.max((now - anim.startTime) / anim.duration, 0), 1);
+            const eased = easeOutCubic(progress);
+
+            const height = Math.round(anim.startHeight + anim.deltaHeight * eased);
+            const opacity = Math.round(anim.startOpacity + anim.deltaOpacity * eased);
 
             this._navItems.forEach(button => {
-                if (!button._label) {
-                    return;
-                }
-
-                if (animate) {
-                    button._label.ease({
-                        opacity: labelOpacity,
-                        duration: NAV_TRANSITION_DURATION,
-                        mode: Clutter.AnimationMode.EASE_OUT_QUAD
-                    });
-                } else {
-                    button._label.remove_transition('opacity');
-                    button._label.set_opacity(labelOpacity);
+                button.set_height(height);
+                if (button._label) {
+                    button._label.set_opacity(opacity);
                 }
             });
+
+            if (progress >= 1) {
+                this._cancelNavAnimation();
+                return;
+            }
+
+            // Keep the after-paint signal firing until the animation ends -
+            // set_height()/set_opacity() above already queue a redraw as a
+            // side effect of the relayout, but this makes that explicit.
+            this.queue_redraw();
+        }
+
+        _cancelNavAnimation() {
+            if (this._navAnim && this._navAnim.lock) {
+                global.stage.disconnect(this._navAnim.lock);
+            }
+            this._navAnim = null;
         }
 
         // Walks the visible categories top-to-bottom and marks the last one
@@ -869,6 +968,7 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._animateRedisplay(() => {
                 this._redisplayLater = this._laters.add(Meta.LaterType.IDLE, () => {
                     this._cancelDrag();
+                    this._cancelNavAnimation();
 
                     this._favoritesView.destroy_all_children();
                     this._mainView.destroy_all_children();
@@ -1472,6 +1572,7 @@ export const VerticalAppDisplay = GObject.registerClass(
             }
 
             this._cancelDrag();
+            this._cancelNavAnimation();
 
             if (this._redisplayLater) {
                 this._laters.remove(this._redisplayLater);
