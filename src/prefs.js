@@ -93,7 +93,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         const hintLabel = new Gtk.Label({
             xalign: 0,
             wrap: true,
-            label: _('Add a custom category, choose whether it is enabled, and optionally merge it into an existing category name (e.g. merge "Authy" into "Security").')
+            label: _('Add a custom category, choose whether it is enabled, and optionally merge it into an existing category name (e.g. merge "Fonts" into "Development").')
         });
         outerBox.append(hintLabel);
 
@@ -137,8 +137,8 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
 
             const nameEntry = new Gtk.Entry({
                 hexpand: true,
-                placeholder_text: _('Category name (e.g. Authy)'),
-                text: name,
+                placeholder_text: _('Category name (e.g. Fonts)'),
+                text: isDefault ? _(name) : name,
                 editable: !isDefault,
                 can_focus: !isDefault
             });
@@ -192,7 +192,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
 
             const mergeEntry = new Gtk.Entry({
                 hexpand: true,
-                placeholder_text: _('Target category name (e.g. Security)'),
+                placeholder_text: _('Target category name (e.g. Webdesign)'),
                 text: merge ? String(merge) : '',
                 sensitive: Boolean(merge)
             });
@@ -219,7 +219,9 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
                 nameEntry,
                 enabledSwitch,
                 mergeCheck,
-                mergeEntry
+                mergeEntry,
+                isDefault,
+                canonicalName: name
             };
             rows.push(rowEntry);
 
@@ -344,7 +346,9 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         const seenNames = new Set();
 
         for (const rowEntry of rows) {
-            const name = rowEntry.nameEntry.get_text().trim();
+            const name = rowEntry.isDefault ?
+                rowEntry.canonicalName :
+                rowEntry.nameEntry.get_text().trim();
             if (!name) {
                 // Skip empty rows silently instead of erroring, so users
                 // can add a blank row and just leave it unused.
