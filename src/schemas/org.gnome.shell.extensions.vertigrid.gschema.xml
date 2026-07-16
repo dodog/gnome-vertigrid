@@ -51,5 +51,10 @@
       <summary>Per-app category overrides in the form 'appId::Category'</summary>
     </key>
 
+    <key name="custom-categories" type="s">
+      <default>'[]'</default>
+      <summary>Custom categories as a JSON array of objects</summary>
+    </key>
+
   </schema>
 </schemalist>
