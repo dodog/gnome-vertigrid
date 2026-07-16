@@ -1,16 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-12 00:00+0000\n"
-"PO-Revision-Date: \n"
-"Last-Translator: Jozef Gaal <preklady@mayday.sk>\n"
-"Language-Team: \n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.9\n"
 
 msgid "Favorites"
 msgstr "Избранное"
@@ -18,14 +11,11 @@ msgstr "Избранное"
 msgid "All Apps"
 msgstr "Все приложения"
 
-msgid "Other"
-msgstr "Other"
+msgid "Add to Favorites"
+msgstr "Добавить в «Избранное»"
 
 msgid "Remove from Favorites"
 msgstr "Удалить из «Избранного»"
-
-msgid "Add to Favorites"
-msgstr "Добавить в «Избранное»"
 
 msgid "Preferences"
 msgstr "Настройки"
@@ -66,6 +56,7 @@ msgstr "Размер иконок"
 msgid "Icon Spacing"
 msgstr "Расстояние между иконками"
 
+
 msgid "Show favorites in app grid"
 msgstr "Show favorites in app grid"
 
@@ -105,12 +96,6 @@ msgstr "Graphics"
 msgid "Education"
 msgstr "Education"
 
-msgid "Security"
-msgstr ""
-
-msgid "Chat"
-msgstr ""
-
 msgid "Game"
 msgstr "Game"
 
@@ -126,14 +111,5 @@ msgstr "System"
 msgid "Settings"
 msgstr "Settings"
 
-msgid "Show Workspaces Bar"
-msgstr ""
-
-msgid "Show workspace thumbnails at the top of the Overview"
-msgstr ""
-
-msgid "Category Label Size"
-msgstr ""
-
-msgid "Adjust the font size shown in the category navigation."
-msgstr ""
+msgid "Other"
+msgstr "Other"

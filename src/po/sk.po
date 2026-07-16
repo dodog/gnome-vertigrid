@@ -63,7 +63,7 @@ msgid "Customization"
 msgstr "Prispôsobenie"
 
 msgid "Columns"
-msgstr "Stĺpce"
+msgstr "Počet stĺpcov"
 
 msgid "Icon Size"
 msgstr "Veľkosť ikony"
@@ -139,3 +139,84 @@ msgstr "Veľkosť písma ponuky kategórií"
 
 msgid "Adjust the font size shown in the category navigation."
 msgstr "Nastaviť veľkosť písma zobrazeného v prehľade kategórií."
+
+msgid "Edit Custom Categories"
+msgstr "Upraviť vlastné kategórie"
+
+msgid "Cancel"
+msgstr "Zrušiť"
+
+msgid "Save"
+msgstr "Uložiť"
+
+msgid ""
+"Add a custom category, choose whether it is enabled, and optionally merge it "
+"into an existing category name (e.g. merge \"Fonts\" into "
+"\"Development\"). \n"
+"You can also set a custom sort order for any category, built-in or custom — "
+"lower numbers appear first."
+msgstr ""
+"Pridajte vlastnú kategóriu, určite, či má byť povolená, a prípadne ju zlúčte "
+"s názvom existujúcej kategórie (napr. zlúčiť „Písma“ s „Vývoj“). \n"
+"Pre každú kategóriu, či už predvolenú alebo vlastnú, si môžete tiež nastaviť "
+"vlastné poradie – nižšie čísla sa zobrazujú skôr."
+
+msgid "Category name (e.g. Fonts)"
+msgstr "Názov kategórie (napr. Písma)"
+
+msgid "Enabled"
+msgstr "Povolené"
+
+msgid "Built-in"
+msgstr "Vstavané"
+
+msgid "Merge into another category"
+msgstr "Zlúčiť do inej kategórie"
+
+msgid "Target category name (e.g. Webdesign)"
+msgstr "Názov cieľovej kategórie (napr. Webdizajn)"
+
+msgid "Add category"
+msgstr "Pridať kategóriu"
+
+msgid " Failed to save custom categories:"
+msgstr " Uloženie vlastných kategórií sa nepodarilo:"
+
+msgid "Custom Categories Saved"
+msgstr "Vlastné kategórie boli uložené"
+
+msgid "OK"
+msgstr "Ok"
+
+msgid ""
+"Your custom category settings have been saved.\n"
+"\n"
+"You need to log out and log back in for these changes to take effect."
+msgstr ""
+"Vaše nastavenia vlastných kategórií boli uložené.\n"
+"\n"
+"Aby sa tieto zmeny uplatnili, musíte sa odhlásiť a znovu prihlásiť."
+
+msgid "Duplicate category name: "
+msgstr "Duplicitný názov kategórie: "
+
+msgid "Enter a target category to merge \""
+msgstr "Zadajte cieľovú kategóriu, do ktorej chcete zlúčiť \""
+
+msgid "\" into, or uncheck \"Merge into another category\"."
+msgstr "\" alebo zrušte označenie políčka „Zlúčiť do inej kategórie“."
+
+msgid "Default categories"
+msgstr "Predvolené kategórie"
+
+msgid "Open the custom category editor"
+msgstr "Otvoriť editor vlastných kategórií"
+
+msgid "Custom order"
+msgstr "Vlastné poradie"
+
+msgid "Lower numbers appear first"
+msgstr "Nižšie číslo sa zobrazí skôr"
+
+#~ msgid "Your custom category settings have been saved."
+#~ msgstr "Vaše nastavenie vlastných kategórií bolo uložené."

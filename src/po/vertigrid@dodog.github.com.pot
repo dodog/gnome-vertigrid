@@ -109,12 +109,6 @@ msgstr ""
 msgid "Education"
 msgstr ""
 
-msgid "Security"
-msgstr ""
-
-msgid "Chat"
-msgstr ""
-
 msgid "Game"
 msgstr ""
 
@@ -140,4 +134,67 @@ msgid "Category Label Size"
 msgstr ""
 
 msgid "Adjust the font size shown in the category navigation."
+msgstr ""
+
+msgid "Edit Custom Categories"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Add a custom category, choose whether it is enabled, and optionally merge it into an existing category name (e.g. merge "Fonts" into "Development"). \nYou can also set a custom sort order for any category, built-in or custom — lower numbers appear first."
+msgstr ""
+
+msgid "Category name (e.g. Fonts)"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Built-in"
+msgstr ""
+
+msgid "Merge into another category"
+msgstr ""
+
+msgid "Target category name (e.g. Webdesign)"
+msgstr ""
+
+msgid "Add category"
+msgstr ""
+
+msgid " Failed to save custom categories:"
+msgstr ""
+
+msgid "Custom Categories Saved"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Your custom category settings have been saved.\n\nYou need to log out and log back in for these changes to take effect."
+msgstr ""
+
+msgid "Duplicate category name: "
+msgstr ""
+
+msgid "Enter a target category to merge \""
+msgstr ""
+
+msgid "\" into, or uncheck \"Merge into another category\"."
+msgstr ""
+
+msgid "Default categories"
+msgstr ""
+
+msgid "Open the custom category editor"
+msgstr ""
+
+msgid "Custom order"
+msgstr ""
+
+msgid "Lower numbers appear first"
 msgstr ""
