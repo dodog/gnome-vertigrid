@@ -93,7 +93,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         const hintLabel = new Gtk.Label({
             xalign: 0,
             wrap: true,
-            label: _('Add a custom category, choose whether it is enabled, and optionally merge it into an existing category name (e.g. merge "Fonts" into "Development").')
+            label: _('Add a custom category, choose whether it is enabled, and optionally merge it into an existing category name (e.g. merge "Fonts" into "Development"). \nYou can also set a custom sort order for any category, built-in or custom — lower numbers appear first.')
         });
         outerBox.append(hintLabel);
 
@@ -113,7 +113,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         // Each row's live widgets, so we can read their current values on Save.
         const rows = [];
 
-        const addRow = (name = '', enabled = true, merge = false, isDefault = false, insertAtTop = false) => {
+        const addRow = (name = '', enabled = true, merge = false, isDefault = false, insertAtTop = false, order = null) => {
             const row = new Gtk.ListBoxRow({
                 activatable: false
             });
@@ -205,6 +205,49 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
                 }
             });
 
+            // Line 3: custom sort order (applies to built-in and custom
+            // categories alike, and interleaves with everything else once
+            // set — categories without a custom order keep their normal
+            // position).
+            const orderLine = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 8
+            });
+            rowBox.append(orderLine);
+
+            const hasOrder = order !== null && order !== undefined && Number.isFinite(Number(order));
+
+            const orderCheck = new Gtk.CheckButton({
+                label: _('Custom order'),
+                active: hasOrder
+            });
+            orderLine.append(orderCheck);
+
+            const orderSpin = new Gtk.SpinButton({
+                adjustment: new Gtk.Adjustment({
+                    lower: -1000,
+                    upper: 1000,
+                    step_increment: 1,
+                    page_increment: 10
+                }),
+                value: hasOrder ? Number(order) : 0,
+                sensitive: hasOrder,
+                valign: Gtk.Align.CENTER
+            });
+            orderLine.append(orderSpin);
+
+            const orderHint = new Gtk.Label({
+                label: _('Lower numbers appear first'),
+                sensitive: hasOrder
+            });
+            orderHint.add_css_class('dim-label');
+            orderLine.append(orderHint);
+
+            orderCheck.connect('toggled', () => {
+                orderSpin.sensitive = orderCheck.active;
+                orderHint.sensitive = orderCheck.active;
+            });
+
             if (removeBtn) {
                 removeBtn.connect('clicked', () => {
                     const idx = rows.indexOf(rowEntry);
@@ -220,6 +263,8 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
                 enabledSwitch,
                 mergeCheck,
                 mergeEntry,
+                orderCheck,
+                orderSpin,
                 isDefault,
                 canonicalName: name
             };
@@ -240,7 +285,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         const defaultCategories = existing.filter(c => c.isDefault);
 
         for (const category of customCategories) {
-            addRow(category.name, category.enabled, category.merge, category.isDefault);
+            addRow(category.name, category.enabled, category.merge, category.isDefault, false, category.order);
         }
 
         const separatorRow = new Gtk.ListBoxRow({
@@ -268,7 +313,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         listBox.append(separatorRow);
 
         for (const category of defaultCategories) {
-            addRow(category.name, category.enabled, category.merge, category.isDefault);
+            addRow(category.name, category.enabled, category.merge, category.isDefault, false, category.order);
         }
 
         const addCategoryBtn = new Gtk.Button({
@@ -430,11 +475,17 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
                 merge = mergeTarget;
             }
 
-            categories.push({
+            const category = {
                 name,
                 enabled,
                 merge
-            });
+            };
+
+            if (rowEntry.orderCheck.get_active()) {
+                category.order = rowEntry.orderSpin.get_value_as_int();
+            }
+
+            categories.push(category);
         }
 
         return {
@@ -451,6 +502,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
             name: c.name,
             enabled: c.hasOwnProperty('enabled') ? Boolean(c.enabled) : true,
             merge: (c.merge && c.merge !== false) ? String(c.merge) : false,
+            order: null,
             isDefault: true
         }));
 
@@ -461,12 +513,16 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
             if (Array.isArray(parsed)) {
                 stored = parsed
                     .filter(c => c && typeof c === 'object' && c.name)
-                    .map(c => ({
-                        name: String(c.name),
-                        enabled: c.hasOwnProperty('enabled') ? Boolean(c.enabled) : true,
-                        merge: (c.merge && c.merge !== false) ? String(c.merge) : false,
-                        isDefault: false
-                    }));
+                    .map(c => {
+                        const orderValue = Number(c.order);
+                        return {
+                            name: String(c.name),
+                            enabled: c.hasOwnProperty('enabled') ? Boolean(c.enabled) : true,
+                            merge: (c.merge && c.merge !== false) ? String(c.merge) : false,
+                            order: Number.isFinite(orderValue) ? orderValue : null,
+                            isDefault: false
+                        };
+                    });
             }
         } catch (e) {
             log(`vertigrid: Failed to parse custom categories: ${e}`);
