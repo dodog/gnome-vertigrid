@@ -17,7 +17,11 @@ import {
     VerticalAppDisplay
 } from './appDisplay.js';
 
+// Extension entrypoint: manage lifecycle and UI overrides.
+// Integrates the app display into the overview.
 export default class VerticalAppGridExtension extends Extension {
+    // Called when the extension is enabled. Sets up the custom app grid,
+    // attaches it into the overview, and installs Shell overrides.
     enable() {
         const extension = this;
         const overviewControlsProto = OverviewControls.ControlsManager.prototype;
@@ -40,6 +44,7 @@ export default class VerticalAppGridExtension extends Extension {
             return attached;
         };
 
+        // Attach the custom vertical app display into the overview controls when they become available.
         this._attachOverviewControls = () => {
             const controls = this._getOverviewControls();
             if (!controls || !this._vertAppDisplay) {
@@ -64,6 +69,8 @@ export default class VerticalAppGridExtension extends Extension {
             this._overviewLayoutManager._appDisplay = this._vertAppDisplay;
         };
 
+        // Poll until the overview is fully ready, then attach the UI. This
+        // covers the case where the overview is not initialized immediately.
         this._startOverviewReadyPoll = () => {
             if (this._overviewReadyPollId !== null) {
                 return;
@@ -85,6 +92,8 @@ export default class VerticalAppGridExtension extends Extension {
             }
         };
 
+        // Ensure we listen for the overview showing signal so we can attach the
+        // app display later if it was not ready at enable().
         this._ensureOverviewConnections = () => {
             if (!Main.overview || this._overviewShowingId !== null) {
                 return;
@@ -97,7 +106,9 @@ export default class VerticalAppGridExtension extends Extension {
             }
         };
 
-        // Apply workspace visibility preference.
+        // Apply workspace visibility preference. Show or hide the workspace
+        // preview panel based on the extension setting, and force a layout
+        // refresh if needed.
         this._updateWorkspacesVisibility = () => {
             try {
                 const show = this._settings.get_boolean('show-workspaces');
@@ -166,7 +177,8 @@ export default class VerticalAppGridExtension extends Extension {
         this._onOverviewReady();
         this._startOverviewReadyPoll();
 
-        // Reclaim the space GNOME reserves for the "workspace preview"
+        // Reclaim the space GNOME reserves for the "workspace preview" when
+        // workspaces are hidden, so the app grid can use more vertical room.
         this._installAppDisplayBoxOverride = () => {
             const controls = this._overviewControls || this._getOverviewControls();
             if (!controls || !controls.layout_manager || this._appDisplayBoxOverrideInstalled) {
@@ -182,8 +194,7 @@ export default class VerticalAppGridExtension extends Extension {
                 }
 
                 // Same shape as the stock method, but treat the reserved
-                // workspace-preview height as 0 so the app grid gets that
-                // space back.
+                // workspace-preview height as 0 so the app grid gets that space back.
                 const [width, height] = box.get_size();
                 const {
                     y1: startY
@@ -297,7 +308,15 @@ export default class VerticalAppGridExtension extends Extension {
         });
     }
 
+    // Cleanup all injected state and restore original Shell behavior.
     disable() {
+        if (this._overviewReadyPollId !== null) {
+            try {
+                GLib.source_remove(this._overviewReadyPollId);
+            } catch (e) {}
+            this._overviewReadyPollId = null;
+        }
+
         try {
             if (this._overviewLayoutManager && this._overviewControls) {
                 this._overviewLayoutManager._appDisplay = this._overviewControls.appDisplay;

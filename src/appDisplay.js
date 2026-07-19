@@ -26,6 +26,7 @@ import {
     getCategoryOrderMap
 } from './categories.js';
 
+// Main vertical app grid widget and helpers for GNOME overview app display.
 const CATEGORY_ICONS = {
     _favorites: 'starred-symbolic',
     Other: 'applications-other-symbolic',
@@ -54,21 +55,16 @@ const CATEGORY_ICONS = {
     Settings: 'emblem-system-symbolic'
 };
 
-// Clutter actor opacity is 0-255. These drive the category-nav icon states:
-// dim by default, a bit brighter on hover, fully bright when active.
+// Icon opacity values for category-nav states.
 const ICON_OPACITY_DEFAULT = 140;
 const ICON_OPACITY_HOVER = 217;
 const ICON_OPACITY_ACTIVE = 255;
 
-// Left nav stays a fixed width at all times; only the category labels
-// fade in/out depending on whether the pointer is over the nav.
+// Fixed nav width; labels fade in/out on hover.
 const NAV_WIDTH = 220;
 const NAV_TRANSITION_DURATION = 350;
 
-// Each nav button's height eases between these two values on nav hover -
-// tight by default so icons sit closer together, roomier (the original
-// look) once the pointer is over the nav. Content stays vertically
-// centered in the button, so the extra height reads as extra padding.
+// Nav button height expands on hover for a looser layout.
 const NAV_ITEM_HEIGHT_COLLAPSED = 30;
 const NAV_ITEM_HEIGHT_EXPANDED = 35;
 
@@ -78,6 +74,7 @@ function easeOutCubic(t) {
 
 export const VerticalAppDisplay = GObject.registerClass(
     class VerticalAppDisplay extends St.Widget {
+        // Main custom app grid widget shown in the GNOME overview.
         _init(settings) {
             this._settings = settings;
             this._laters = global.compositor.get_laters();
@@ -150,6 +147,7 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._updateLabelMargins();
         }
 
+        // Connect all app system, overview, and input signals for the app grid.
         _connectSignals() {
             // Redisplay the app grid when an app was installed or removed.
             this._appSystem.connectObject('installed-changed', () => {
@@ -650,8 +648,7 @@ export const VerticalAppDisplay = GObject.registerClass(
 
                 // Apply the current expanded/collapsed state immediately -
                 // no animation - so a redisplay (settings change, app
-                // install, etc.) doesn't flash labels or spacing for a
-                // frame.
+                // install, etc.) doesn't flash labels or spacing for a frame.
                 label.set_opacity(this._navCollapsed ? 0 : 255);
                 button.set_height(this._navCollapsed ? NAV_ITEM_HEIGHT_COLLAPSED : NAV_ITEM_HEIGHT_EXPANDED);
 
@@ -1281,9 +1278,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                                         }
                                         const gapToNext = nextLabelPos[1] - (labelPos[1] + labelHeight);
                                         if (gapToNext > 0) {
-                                            // Leave a small buffer before the
-                                            // next header rather than
-                                            // touching it exactly.
+                                            // Leave a small buffer before the next header rather than touching it exactly.
                                             dropPadding = Math.max(20, Math.min(dropPadding, gapToNext - 10));
                                         }
                                     }
@@ -1408,27 +1403,21 @@ export const VerticalAppDisplay = GObject.registerClass(
                                 return path.join(' -> ');
                             };
 
-                            log(`vertigrid: drop release coords=${rx},${ry}`);
                             const targetActor = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, rx, ry);
-                            log(`vertigrid: hit targetActor=${targetActor ? targetActor.get_name ? targetActor.get_name() : '<unknown>' : 'null'}`);
-                            log(`vertigrid: actor hierarchy=${targetActor ? dumpActorPath(targetActor) : '<none>'}`);
 
                             let found = this._findCategoryViewFromActor(targetActor);
                             if (!found.view) {
                                 found = this._findCategoryViewAtStagePoint(rx, ry);
-                                log(`vertigrid: fallback category=${found.category}`);
                             }
-                            log(`vertigrid: found category=${found.category}`);
                             if (found.view) {
                                 const cat = found.category;
                                 const destView = found.view;
 
-                                // Computing the slot geometrically
-                                // - the same row/column formula VerticalLayout
-                                // itself uses to lay out children - gives a
-                                // consistent, correct index regardless of
-                                // whether the pointer landed on an icon or
-                                // on empty grid space.
+                                // Computing the slot geometrically - the same
+                                // row/column formula VerticalLayout itself uses
+                                // to lay out children - gives a consistent,
+                                // correct index regardless of whether the
+                                // pointer landed on an icon or on empty grid space.
                                 const insertIndex = this._computeGridInsertIndex(destView, rx, ry);
 
                                 // Build the full resulting order for this
@@ -1445,11 +1434,9 @@ export const VerticalAppDisplay = GObject.registerClass(
                                 const clampedIndex = Math.min(Math.max(insertIndex, 0), withoutDragged.length);
                                 withoutDragged.splice(clampedIndex, 0, draggedId);
 
-                                log(`vertigrid: dropping into=${cat} insertIndex=${clampedIndex}`);
                                 try {
                                     setCategoryOrder(cat, withoutDragged);
                                 } catch (e) {
-                                    log(`vertigrid: setCategoryOrder error=${e}`);
                                     setAppCategory(src._appId, cat);
                                 }
 
@@ -1472,13 +1459,12 @@ export const VerticalAppDisplay = GObject.registerClass(
                         }
 
                         this._dragActor = null;
-                        // Consume the release too - this is the critical
-                        // part: without this, GNOME's own capture-phase
-                        // background-click handler would still see this
-                        // same release and close the overview, since a
-                        // drop onto empty category space has no reactive
-                        // actor under the pointer for it to distinguish
-                        // from an ordinary background click.
+                        // Consume the release too - this is the critical part:
+                        // without this, GNOME's own capture-phase background-
+                        // click handler would still see this same release and
+                        // close the overview, since a drop onto empty category
+                        // space has no reactive actor under the pointer for it
+                        // to distinguish from an ordinary background click.
                         return Clutter.EVENT_STOP;
                     }
 
@@ -1706,6 +1692,8 @@ export const VerticalAppDisplay = GObject.registerClass(
             return this._appIcons[targetIndex];
         }
 
+        // Tear down widget state and disconnect all signals when the app grid
+        // is destroyed.
         destroy() {
             this._appSystem.disconnectObject(this);
             this._appFavorites.disconnectObject(this);
@@ -1739,6 +1727,7 @@ export const VerticalAppDisplay = GObject.registerClass(
 
 const VerticalScrollView = GObject.registerClass(
     class VerticalScrollView extends St.ScrollView {
+        // Custom scroll view with animated scrolling and precise child targeting.
         _init(settings) {
             super._init({
                 hscrollbar_policy: St.PolicyType.NEVER,

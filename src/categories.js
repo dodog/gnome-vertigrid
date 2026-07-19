@@ -1,18 +1,13 @@
 /*
-Category configuration for app grouping
-Custom categories are stored in settings under 'custom-categories', so they
-survive extension updates and do not require editing src/categories.js.
-
-Define custom categories as JSON objects with:
- - name: string
- - enabled: boolean
- - merge: string|false
- - order: optional number
+Category config and custom category storage helpers.
+Custom categories are saved under 'custom-categories' and survive updates.
 */
 
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
+// Settings helpers and category utilities used by the extension and prefs.
+// Safe/settings helper functions used by the extension and preferences UI.
 export function getSettingsString(settings, key, fallback = '') {
     if (!settings) {
         return fallback;
@@ -39,6 +34,8 @@ export function getSettingsStrv(settings, key, fallback = []) {
     }
 }
 
+// Resolve the extension's own GSettings schema from the local schemas
+// directory, falling back to the system schema source if necessary.
 function _resolveExtensionSettings(schemaId) {
     const extensionDir = GLib.path_get_dirname(
         Gio.File.new_for_uri(
@@ -68,12 +65,8 @@ function _resolveExtensionSettings(schemaId) {
     });
 }
 
-// Lazily resolved and cached rather than constructed eagerly at module
-// load: this module is imported both from the GNOME Shell process (via
-// appDisplay.js) and from the separate prefs.js process (for
-// DEFAULT_CATEGORIES).Failures are caught here and degrade to fallback values instead of throwing at
-// import time and breaking the whole module (and anything that imports
-// it, including prefs.js opening the preferences window).
+// Cache the resolved settings object to avoid repeated schema lookup during
+// runtime and preferences loading.
 let _settingsInstance = null;
 let _settingsInitAttempted = false;
 
@@ -91,6 +84,7 @@ function _getSettings() {
     return _settingsInstance;
 }
 
+// Built-in default categories shown when no custom categories are set.
 export const DEFAULT_CATEGORIES = [{
         name: 'Development',
         enabled: true,
@@ -158,6 +152,8 @@ export const DEFAULT_CATEGORIES = [{
     }
 ];
 
+// Normalize stored or user-provided category objects to a consistent shape
+// before they are merged with defaults and displayed.
 function _normalizeCategory(category, defaultOrder) {
     if (!category || typeof category !== 'object') {
         return null;
@@ -205,6 +201,7 @@ function _getSettingsStrvLocal(key, fallback = []) {
     return getSettingsStrv(_getSettings(), key, fallback);
 }
 
+// Read the saved custom categories JSON from settings and normalize it.
 function _loadCustomCategories() {
     const raw = _getSettingsStringLocal('custom-categories', '[]');
     try {
@@ -226,6 +223,8 @@ function _categoryNamesEqual(a, b) {
     return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 }
 
+// Build the effective category list by merging built-in defaults with any
+// custom category overrides stored in settings.
 export function getCategories() {
     const categories = DEFAULT_CATEGORIES.map((category, index) => ({
         ...category,
@@ -267,11 +266,8 @@ export function getAllCategories() {
 
 /** ========== DO NOT MODIFY THE FOLLOWING UNLESS YOU ARE A DEVELOPER ========== **/
 
-
-// app-category-overrides entries are encoded as "appId::category::index"
-// (index optional). These three helpers are the single place that format
-// is written and read, instead of each caller re-implementing its own
-// split('::')/startsWith() logic.
+// app-category-overrides use appId::category::index encoding. These helpers
+// centralize parse/format logic.
 function _encodeOverrideEntry(appId, category, index) {
     if (index !== null && index !== undefined) {
         return `${appId}::${category}::${Math.floor(index)}`;
@@ -401,11 +397,8 @@ export function clearAppCategory(appId) {
 }
 
 /**
- * setCategoryOrder() fix by giving EVERY app in the category an
- * explicit index in one write, so the whole category becomes one
- * consistent, fully interleavable sort. Call this with the complete
- * resulting app-id order for a category whenever a drag-and-drop reorder
- * happens within or into it (see appDisplay.js's drop handler).
+ * Write explicit indexes for every app in a category so the order is
+ * consistent after drag-and-drop reordering.
  */
 export function setCategoryOrder(category, orderedAppIds) {
     const settings = _getSettings();
@@ -466,20 +459,15 @@ export function getCategoryOrderMap() {
 }
 
 function _isValidTargetCategory(currentCategories, name) {
-    // A category is only safe to hand back to the app grid if it's
-    // currently enabled and not itself merged elsewhere — i.e. exactly the
-    // set getCategoryOrder() exposes. Anything else (a typo'd merge target,
-    // a merge into a disabled/removed category, a stale override) must not
-    // be returned as-is: the app grid only allocates buckets for that
-    // valid set, so an unrecognized name causes it to crash when it tries
-    // to push an app into a bucket that doesn't exist.
+    // Only return enabled, non-merged categories to avoid invalid buckets.
     return currentCategories.some(c =>
         c.enabled && !c.merge && _categoryNamesEqual(c.name, name)
     );
 }
 
 /**
- * Get the category for an app from its desktop file categories
+ * Determine the app's category, respecting overrides and enabled/merged
+ * category validation.
  */
 export function getAppCategory(appInfo) {
     try {
@@ -488,10 +476,8 @@ export function getAppCategory(appInfo) {
         const resolve = candidate =>
             _isValidTargetCategory(currentCategories, candidate) ? candidate : 'Other';
 
-        // Check for user overrides first (e.g. drag-and-drop into a
-        // category). The override still needs to be resolved through the
-        // enabled/merge config below — an override pointing at a disabled
-        // or merged category must not bypass that logic.
+        // Check user overrides first (e.g. drag-and-drop into a
+        // category), but validate them against current enabled/merged category config.
         try {
             const id = appInfo.get_id();
             const overrides = _loadOverrides();
@@ -523,20 +509,15 @@ export function getAppCategory(appInfo) {
             categories.map(c => String(c).trim()).filter(Boolean) :
             categories.split(';').map(c => String(c).trim()).filter(Boolean);
 
-        // Walk the app's OWN category list (in the order the .desktop file
-        // lists them) rather than our config list. Apps commonly carry
-        // several categories at once (e.g. "AudioVideo;Audio;Player;"), and
-        // a disabled catch-all like AudioVideo should not block a more
-        // specific, enabled/merged category like Audio from matching just
-        // because it happens to come first in our config list.
+        // Use the app's own category list order so a specific enabled/merged
+        // category can match before a broader disabled one.
         for (const trimmed of categoryList) {
             if (!trimmed) {
                 continue;
             }
             const catConfig = currentCategories.find(c => _categoryNamesEqual(c.name, trimmed));
             if (!catConfig) {
-                // Unknown category name to us, keep checking the app's
-                // other listed categories.
+                // Unknown category name to us, keep checking the app's other listed categories.
                 continue;
             }
             if (!catConfig.enabled) {

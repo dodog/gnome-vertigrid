@@ -11,7 +11,9 @@ import {
     gettext as _
 } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+// Preferences UI for editing extension settings and custom categories.
 export default class EssentialTweaksPreferences extends ExtensionPreferences {
+    // Construct the preferences UI and wire widgets to the extension settings.
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
         const builder = new Gtk.Builder();
@@ -41,11 +43,8 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         this._bindComboRow(builder, settings, 'favorites-sorting', ['dash', 'usage', 'alphabetical']);
 
         const editCategoriesBtn = builder.get_object('edit-custom-categories-btn');
-        const editCategoriesRow = builder.get_object('edit-custom-categories');
 
-        // Guard against the row's activatable-widget forwarding the click
-        // to the button AND the row itself firing activate/activated for
-        // the same click, which would otherwise open two dialogs at once.
+        // Open the custom categories editor only via the button.
         let dialogOpen = false;
         const openCustomCategoriesEditor = () => {
             if (dialogOpen) {
@@ -60,13 +59,9 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         if (editCategoriesBtn) {
             editCategoriesBtn.connect('clicked', openCustomCategoriesEditor);
         }
-
-        if (editCategoriesRow && editCategoriesRow.connect) {
-            editCategoriesRow.connect('activate', openCustomCategoriesEditor);
-            editCategoriesRow.connect('activated', openCustomCategoriesEditor);
-        }
     }
 
+    // Show a dialog for editing custom categories, including merge targets and custom sort order.
     _showCustomCategoriesEditor(window, settings, onClosed) {
         const dialog = new Gtk.Dialog({
             transient_for: window,
@@ -207,9 +202,8 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
             });
 
             // Line 3: custom sort order (applies to built-in and custom
-            // categories alike, and interleaves with everything else once
-            // set — categories without a custom order keep their normal
-            // position).
+            // categories alike, and interleaves with everything else once set —
+            // categories without a custom order keep their normal position).
             const orderLine = new Gtk.Box({
                 orientation: Gtk.Orientation.HORIZONTAL,
                 spacing: 8
@@ -429,6 +423,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         noticeDialog.present();
     }
 
+    // Validate and serialize the custom category rows before saving them.
     _collectCategories(rows) {
         // Save order is independent of the editor's visual order (customs
         // shown on top, defaults below): built-ins are always written
@@ -514,10 +509,10 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         };
     }
 
+    // Load the built-in and stored categories for the category editor.
     _loadExistingCategories(settings) {
         // Start from the built-in defaults so the user can see and edit
-        // (enable/disable, merge) the standard categories too, not just
-        // ones they've added.
+        // (enable/disable, merge) the standard categories too, not just ones he added.
         const merged = DEFAULT_CATEGORIES.map(c => ({
             name: c.name,
             enabled: c.hasOwnProperty('enabled') ? Boolean(c.enabled) : true,
@@ -566,6 +561,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         return merged;
     }
 
+    // Bind a combo row to a string setting and keep the saved value in sync.
     _bindComboRow(builder, settings, key, values) {
         const comboRow = builder.get_object(key);
 
