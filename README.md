@@ -1,4 +1,4 @@
-# VertiGrid
+# VERTIgrid
 
 **A vertical app grid for GNOME Shell with category grouping, navigation, and drag-and-drop support.**
 
