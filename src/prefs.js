@@ -334,6 +334,16 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
         errorLabel.add_css_class('error');
         outerBox.append(errorLabel);
 
+        // Resets the "is the editor open" flag (via onClosed) at the exact
+        // moment we decide to close the dialog, rather than waiting for the
+        // 'destroy' signal to fire on its own. 
+        const closeDialog = () => {
+            if (onClosed) {
+                onClosed();
+            }
+            dialog.destroy();
+        };
+
         dialog.connect('response', (_dialog, responseId) => {
             if (responseId === Gtk.ResponseType.OK) {
                 const {
@@ -350,7 +360,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
 
                 try {
                     settings.set_string('custom-categories', JSON.stringify(categories));
-                    dialog.destroy();
+                    closeDialog();
                     this._showRestartNotice(window);
                 } catch (e) {
                     errorLabel.set_text(_('Failed to save custom categories: ') + e.message);
@@ -358,15 +368,15 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
                     dialog.present();
                 }
             } else {
-                dialog.destroy();
+                closeDialog();
             }
         });
 
-        // destroy always fires regardless of how the dialog closes (window
-        // close button, Cancel, or a successful Save that calls
-        // dialog.destroy() itself), so onClosed() only needs to be wired up
-        // here - not also on close-request, which would otherwise call it
-        // a second time for the window-close-button path.
+        // Kept as a safety net for any closure path that doesn't go through
+        // the response handler above (e.g. a window-manager-level close).
+        // onClosed() is safe to call more than once - it only resets a
+        // boolean flag - so this can't double-trigger anything by also
+        // firing after closeDialog() already called it.
         dialog.connect('destroy', () => {
             if (onClosed) {
                 onClosed();
@@ -411,7 +421,7 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
             xalign: 0.5,
             wrap: true,
             justify: Gtk.Justification.CENTER,
-            label: _('Your custom category settings have been saved and applied to the app grid.')
+            label: _('Your custom category settings have been \nsaved and applied to the app grid.')
         });
         box.append(label);
 

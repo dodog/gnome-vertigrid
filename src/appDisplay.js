@@ -1041,6 +1041,7 @@ export const VerticalAppDisplay = GObject.registerClass(
                         }
                         for (const category in this._categoryViews) {
                             if (this._categoryViews[category]) {
+                                this._destroyViewportLayout(this._categoryViews[category]);
                                 this._categoryViews[category].destroy();
                                 this._categoryViews[category] = null;
                             }
@@ -1478,6 +1479,17 @@ export const VerticalAppDisplay = GObject.registerClass(
             this._cancelActiveDrag();
         }
 
+        // Call this before destroying any viewport that was
+        // constructed with `new VerticalLayout(...)`.
+        _destroyViewportLayout(viewport) {
+            try {
+                const layoutManager = viewport && viewport.layout_manager;
+                if (layoutManager && typeof layoutManager.destroy === 'function') {
+                    layoutManager.destroy();
+                }
+            } catch (e) {}
+        }
+
         _findLabelActor(actor) {
             if (actor instanceof St.Label) {
                 return actor;
@@ -1669,6 +1681,20 @@ export const VerticalAppDisplay = GObject.registerClass(
 
             if (this._redisplayLater) {
                 this._laters.remove(this._redisplayLater);
+            }
+
+            // See the comment on _destroyViewportLayout(): none of these
+            // viewports' layout managers get their destroy() called just by
+            // destroying the actor tree below via super.destroy(), so their
+            // settings 'changed' connections need releasing explicitly here
+            // too - covers _favoritesView/_mainView (only ever created once,
+            // in _init()) and any category viewports still live if destroy()
+            // is called without a prior _redisplay() having already cleared
+            // them.
+            this._destroyViewportLayout(this._favoritesView);
+            this._destroyViewportLayout(this._mainView);
+            for (const category in this._categoryViews) {
+                this._destroyViewportLayout(this._categoryViews[category]);
             }
 
             for (const appIcon of this._appIcons) {
